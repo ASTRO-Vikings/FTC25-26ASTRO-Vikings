@@ -38,12 +38,13 @@ public class TeleopTheFirst extends NextFTCOpMode {
     @Override
     public void onInit() {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
     }
 
     @Override
     public void onStartButtonPressed() {
         Gamepads.gamepad1().a()
-                .whenTrue(Carousel.INSTANCE.spin);
+                .whenBecomesTrue(Carousel.INSTANCE.toLow);
+        Gamepads.gamepad1().b()
+                .whenBecomesTrue(Carousel.INSTANCE.toHigh);
     }
 }
