@@ -10,9 +10,9 @@ public class Lifts implements Subsystem {
     public static final Lifts INSTANCE = new Lifts();
     private Lifts() { }
 
-    private MotorEx motor = new MotorEx("lift_motor");
+    private final MotorEx motor = new MotorEx("lift_motor");
 
-    private ControlSystem controlSystem = ControlSystem.builder()
+    private final ControlSystem controlSystem = ControlSystem.builder()
             .posPid(0.005, 0, 0)
             .elevatorFF(0)
             .build();
