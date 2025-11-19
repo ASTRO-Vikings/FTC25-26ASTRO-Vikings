@@ -1,14 +1,10 @@
 package org.firstinspires.ftc.teamcode;
-import static dev.nextftc.bindings.Bindings.button;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -20,7 +16,6 @@ import org.firstinspires.ftc.teamcode.subsystems.Lifts;
 import java.util.function.Supplier;
 
 import dev.nextftc.bindings.Button;
-import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.Gamepads;
@@ -48,6 +43,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
     private Supplier<PathChain> pathChain;
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
+    private boolean isRobotCentric = false; //TODO decide whether field centric or robot centric
 
     @Override
     public void onInit() {
@@ -75,12 +71,12 @@ public class TeleopTheFirst extends NextFTCOpMode {
         Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
 
         leftTrigger
-                .whenBecomesTrue(Flywheel.INSTANCE.on);
-        leftTrigger
+                .whenBecomesTrue(Flywheel.INSTANCE.on)
                 .whenBecomesFalse(Flywheel.INSTANCE.off);
         //Lifts
         Gamepads.gamepad1().dpadUp()
-                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
+                .whenBecomesTrue(Lifts.INSTANCE.toHigh)
+        ;
         Gamepads.gamepad1().dpadDown()
                 .whenBecomesTrue(Lifts.INSTANCE.toLow);
     }
@@ -96,13 +92,13 @@ public class TeleopTheFirst extends NextFTCOpMode {
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
-                    false
+                    isRobotCentric
             );
             else follower.setTeleOpDrive(
                     -gamepad1.left_stick_y * slowModeMultiplier,
                     -gamepad1.left_stick_x * slowModeMultiplier,
                     -gamepad1.right_stick_x * slowModeMultiplier,
-                    false
+                    isRobotCentric
             );
         }
 //        Follow path
@@ -123,6 +119,8 @@ public class TeleopTheFirst extends NextFTCOpMode {
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
-
+        telemetryM.debug("Dpad up/down for lift");
+        telemetryM.debug("Dpad left/right for carousel");
+        telemetryM.debug("Left trigger for flywheels");
     }
 }
