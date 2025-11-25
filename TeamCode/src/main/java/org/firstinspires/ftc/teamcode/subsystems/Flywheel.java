@@ -8,7 +8,7 @@ import dev.nextftc.hardware.impl.MotorEx;
 
 public class Flywheel implements Subsystem {
     public static final Flywheel INSTANCE = new Flywheel();
-    public final int vel = 500;
+    public final int vel = 109200;
     private Flywheel() { }
 
     private final MotorEx rightMotor = new MotorEx("flywheelMotorLeft");

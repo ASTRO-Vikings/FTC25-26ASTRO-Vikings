@@ -10,7 +10,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
+import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Lifts;
 
 import java.util.function.Supplier;
@@ -31,6 +33,8 @@ public class TeleopTheFirst extends NextFTCOpMode {
                 new SubsystemComponent(Carousel.INSTANCE),
                 new SubsystemComponent(Flywheel.INSTANCE),
                 new SubsystemComponent(Lifts.INSTANCE),
+                new SubsystemComponent(Intake.INSTANCE),
+                new SubsystemComponent(Elevator.INSTANCE),
                 BulkReadComponent.INSTANCE,
                 BindingsComponent.INSTANCE
                 );
@@ -79,6 +83,16 @@ public class TeleopTheFirst extends NextFTCOpMode {
         ;
         Gamepads.gamepad1().dpadDown()
                 .whenBecomesTrue(Lifts.INSTANCE.toLow);
+
+        //Elevator
+        Gamepads.gamepad1().a()
+                .whenBecomesTrue(Elevator.INSTANCE.toHigh)
+                .whenBecomesFalse(Elevator.INSTANCE.toLow);
+
+        //Intake
+        Gamepads.gamepad1().b()
+                .whenBecomesTrue(Intake.INSTANCE.takeIn)
+                .whenBecomesFalse(Intake.INSTANCE.takeOut);
     }
 
     @Override
@@ -122,5 +136,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
         telemetryM.debug("Dpad up/down for lift");
         telemetryM.debug("Dpad left/right for carousel");
         telemetryM.debug("Left trigger for flywheels");
+        telemetryM.debug("A for elevator");
+        telemetryM.debug("B for intake");
     }
 }

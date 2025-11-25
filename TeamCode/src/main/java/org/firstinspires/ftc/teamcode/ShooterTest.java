@@ -12,7 +12,7 @@ public class ShooterTest extends OpMode {
 
     private DcMotor one;
     private DcMotor zero;
-    public static double speed = .1;
+    public static double speed = .5;
 
 
     @Override
