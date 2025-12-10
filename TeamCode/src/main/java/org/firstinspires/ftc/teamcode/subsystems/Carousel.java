@@ -9,9 +9,9 @@ import dev.nextftc.hardware.impl.MotorEx;
 
 public class Carousel implements Subsystem{
     public static final Carousel INSTANCE = new Carousel();
-    public final int rotAmt = 100;
+    public final int rotAmt = 928;
     private  Carousel(){}
-    private final MotorEx motor = new MotorEx("carouselMotor");
+    private final MotorEx motor = new MotorEx("carousel");
     private final ControlSystem controlSystem = ControlSystem.builder()
             .posPid(0.005,0,0)
             .basicFF(0.01,0.02,0.03)

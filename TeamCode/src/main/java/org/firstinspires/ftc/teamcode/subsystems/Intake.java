@@ -12,6 +12,6 @@ public class Intake implements Subsystem{
     private final CRServoEx intake = new CRServoEx("intake");
 
 
-    public Command takeIn = new SetPower(intake, 1);
-    public Command takeOut = new SetPower(intake, -1);
+    public Command takeIn = new SetPower(intake, -1);
+    public Command stop = new SetPower(intake, 0);
 }

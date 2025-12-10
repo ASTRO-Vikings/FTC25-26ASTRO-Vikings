@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Carousel;
 import org.firstinspires.ftc.teamcode.subsystems.Elevator;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.LaunchGroup;
 import org.firstinspires.ftc.teamcode.subsystems.Lifts;
 
 import java.util.function.Supplier;
@@ -35,6 +36,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
                 new SubsystemComponent(Lifts.INSTANCE),
                 new SubsystemComponent(Intake.INSTANCE),
                 new SubsystemComponent(Elevator.INSTANCE),
+                new SubsystemComponent(LaunchGroup.INSTANCE),
                 BulkReadComponent.INSTANCE,
                 BindingsComponent.INSTANCE
                 );
@@ -92,43 +94,47 @@ public class TeleopTheFirst extends NextFTCOpMode {
         //Intake
         Gamepads.gamepad1().b()
                 .whenBecomesTrue(Intake.INSTANCE.takeIn)
-                .whenBecomesFalse(Intake.INSTANCE.takeOut);
+                .whenBecomesFalse(Intake.INSTANCE.stop);
+
+        //Launch
+        Gamepads.gamepad1().y()
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
     }
 
     @Override
     public void onUpdate(){
         follower.update();
         telemetryM.update();
-
-        //If not following path allow driving
-        if (!automatedDrive) {
-            if (!slowMode) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
-                    isRobotCentric
-            );
-            else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
-                    -gamepad1.right_stick_x * slowModeMultiplier,
-                    isRobotCentric
-            );
-        }
-//        Follow path
-//        if (gamepad1.aWasPressed()) {
-//            follower.followPath(pathChain.get());
-//            automatedDrive = true;
+//
+//        //If not following path allow driving
+//        if (!automatedDrive) {
+//            if (!slowMode) follower.setTeleOpDrive(
+//                    -gamepad1.left_stick_y,
+//                    -gamepad1.left_stick_x,
+//                    -gamepad1.right_stick_x,
+//                    isRobotCentric
+//            );
+//            else follower.setTeleOpDrive(
+//                    -gamepad1.left_stick_y * slowModeMultiplier,
+//                    -gamepad1.left_stick_x * slowModeMultiplier,
+//                    -gamepad1.right_stick_x * slowModeMultiplier,
+//                    isRobotCentric
+//            );
 //        }
-//        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
-//            follower.startTeleopDrive();
-//            automatedDrive = false;
+////        Follow path
+////        if (gamepad1.aWasPressed()) {
+////            follower.followPath(pathChain.get());
+////            automatedDrive = true;
+////        }
+////        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
+////            follower.startTeleopDrive();
+////            automatedDrive = false;
+////        }
+//
+//        //Toggle slowmode
+//        if (gamepad1.rightBumperWasPressed()) {
+//            slowMode = !slowMode;
 //        }
-
-        //Toggle slowmode
-        if (gamepad1.rightBumperWasPressed()) {
-            slowMode = !slowMode;
-        }
 
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
@@ -138,5 +144,6 @@ public class TeleopTheFirst extends NextFTCOpMode {
         telemetryM.debug("Left trigger for flywheels");
         telemetryM.debug("A for elevator");
         telemetryM.debug("B for intake");
+        telemetryM.debug("Y for launch");
     }
 }

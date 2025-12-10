@@ -8,10 +8,10 @@ import dev.nextftc.hardware.positionable.SetPosition;
 
 public class Elevator implements Subsystem{
     public static final Elevator INSTANCE = new Elevator();
-    public final double upPos = 1;
-    public final double downPos = 0;
+    public final double upPos = 0;
+    public final double downPos = 1;
     private Elevator(){}
-    private final ServoEx elevator = new ServoEx("intake");
+    private final ServoEx elevator = new ServoEx("elevator");
 
 
     public Command toLow = new SetPosition(elevator, downPos).requires(this);
