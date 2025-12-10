@@ -7,6 +7,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
@@ -18,7 +20,13 @@ import org.firstinspires.ftc.teamcode.subsystems.Lifts;
 
 import java.util.function.Supplier;
 
+import dev.nextftc.bindings.BindingManager;
 import dev.nextftc.bindings.Button;
+import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.conditionals.IfElseCommand;
+import dev.nextftc.core.commands.groups.ParallelGroup;
+import dev.nextftc.core.commands.utility.InstantCommand;
+import dev.nextftc.core.commands.utility.NullCommand;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.Gamepads;
@@ -50,9 +58,25 @@ public class TeleopTheFirst extends NextFTCOpMode {
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
     private boolean isRobotCentric = false; //TODO decide whether field centric or robot centric
+    //TODO TEMP DRIVE MOTORS
+    DcMotor frontLeft;
+    DcMotor frontRight;
+    DcMotor backLeft;
+    DcMotor backRight;
 
     @Override
     public void onInit() {
+        //TODO TEMP DRIVE MOTORS
+        frontLeft = hardwareMap.dcMotor.get("frontLeft");
+        frontRight = hardwareMap.dcMotor.get("frontRight");
+        backLeft = hardwareMap.dcMotor.get("backLeft");
+        backRight = hardwareMap.dcMotor.get("backRight");
+//
+//        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+//        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -69,10 +93,25 @@ public class TeleopTheFirst extends NextFTCOpMode {
     @Override
     public void onStartButtonPressed() {
         //Carousel
-        Gamepads.gamepad1().dpadLeft()
-                .whenBecomesTrue(Carousel.INSTANCE.toLow);
+        Gamepads.gamepad1().dpadLeft().whenBecomesTrue(()->{new ParallelGroup(
+                Carousel.INSTANCE.launchMoveToLeft(),
+                new InstantCommand(()->{BindingManager.setLayer("Can Launch");}));});
+
+
         Gamepads.gamepad1().dpadRight()
-                .whenBecomesTrue(Carousel.INSTANCE.toHigh);
+                .whenBecomesTrue(new ParallelGroup(
+                        Carousel.INSTANCE.launchMoveToRight(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
+
+        Gamepads.gamepad1().leftBumper()
+                .whenBecomesTrue(new ParallelGroup (
+                        Carousel.INSTANCE.intakeMoveToLeft(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
+        Gamepads.gamepad1().rightBumper()
+                .whenBecomesTrue(new ParallelGroup(
+                        Carousel.INSTANCE.intakeMoveToRight(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
+
         //Flywheel
         Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
 
@@ -93,18 +132,41 @@ public class TeleopTheFirst extends NextFTCOpMode {
 
         //Intake
         Gamepads.gamepad1().b()
+                .inLayer("Can Intake")
                 .whenBecomesTrue(Intake.INSTANCE.takeIn)
                 .whenBecomesFalse(Intake.INSTANCE.stop);
 
         //Launch
         Gamepads.gamepad1().y()
+                .inLayer("Can Launch")
                 .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
     }
+
+
 
     @Override
     public void onUpdate(){
         follower.update();
         telemetryM.update();
+        //TODO TEMPORARAY ROBOCENTRIC DRIVE CODE UNTIL PEDROPATHING CONSTANCTS ARE DONE TO USE PEDROPATHING TELEOP
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = gamepad1.right_stick_x;
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
+
+        frontLeft.setPower(frontLeftPower);
+        backLeft.setPower(backLeftPower);
+        frontRight.setPower(frontRightPower);
+        backRight.setPower(backRightPower);
+
 //
 //        //If not following path allow driving
 //        if (!automatedDrive) {
@@ -132,7 +194,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
 ////        }
 //
 //        //Toggle slowmode
-//        if (gamepad1.rightBumperWasPressed()) {
+//        if (gamepad1.leftTriggerWasPressed()) {
 //            slowMode = !slowMode;
 //        }
 

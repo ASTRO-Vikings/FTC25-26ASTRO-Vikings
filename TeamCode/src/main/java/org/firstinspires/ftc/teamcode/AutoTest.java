@@ -22,9 +22,9 @@ public class AutoTest extends NextFTCOpMode {
 
     public Command autonomousRoutine(){
         return new SequentialGroup(
-                Carousel.INSTANCE.toLow,
-                new Delay(.5),
-                Carousel.INSTANCE.toHigh
+//                Carousel.INSTANCE.moveToLeft(),
+//                new Delay(.5),
+//                Carousel.INSTANCE.moveToRight()
         );
     }
 

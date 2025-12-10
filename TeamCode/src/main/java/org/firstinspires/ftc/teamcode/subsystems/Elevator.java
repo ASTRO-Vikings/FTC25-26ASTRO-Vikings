@@ -13,7 +13,11 @@ public class Elevator implements Subsystem{
     private Elevator(){}
     private final ServoEx elevator = new ServoEx("elevator");
 
-
     public Command toLow = new SetPosition(elevator, downPos).requires(this);
     public Command toHigh = new SetPosition(elevator, upPos).requires(this);
+
+    @Override
+    public void initialize(){
+        toLow.schedule();
+    }
 }
