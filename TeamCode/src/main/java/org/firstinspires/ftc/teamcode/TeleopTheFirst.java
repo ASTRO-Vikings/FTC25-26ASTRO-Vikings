@@ -71,17 +71,11 @@ public class TeleopTheFirst extends NextFTCOpMode {
         frontRight = hardwareMap.dcMotor.get("frontRight");
         backLeft = hardwareMap.dcMotor.get("backLeft");
         backRight = hardwareMap.dcMotor.get("backRight");
-//
-//        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-//        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        follower.update();
 
 //      Path to follow during teleop
 //        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
@@ -93,53 +87,52 @@ public class TeleopTheFirst extends NextFTCOpMode {
     @Override
     public void onStartButtonPressed() {
         //Carousel
+        //Launch location rotation
         Gamepads.gamepad1().dpadLeft().whenBecomesTrue(()->{new ParallelGroup(
                 Carousel.INSTANCE.launchMoveToLeft(),
                 new InstantCommand(()->{BindingManager.setLayer("Can Launch");}));});
-
 
         Gamepads.gamepad1().dpadRight()
                 .whenBecomesTrue(new ParallelGroup(
                         Carousel.INSTANCE.launchMoveToRight(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
 
+        //Intake location rotation
         Gamepads.gamepad1().leftBumper()
                 .whenBecomesTrue(new ParallelGroup (
                         Carousel.INSTANCE.intakeMoveToLeft(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
+
         Gamepads.gamepad1().rightBumper()
                 .whenBecomesTrue(new ParallelGroup(
                         Carousel.INSTANCE.intakeMoveToRight(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
 
-        //Flywheel
-        Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
+        //Launching
+        Button rightTrigger = Gamepads.gamepad1().rightTrigger().greaterThan(.1);
 
-        leftTrigger
-                .whenBecomesTrue(Flywheel.INSTANCE.on)
-                .whenBecomesFalse(Flywheel.INSTANCE.off);
-        //Lifts
-        Gamepads.gamepad1().dpadUp()
-                .whenBecomesTrue(Lifts.INSTANCE.toHigh)
-        ;
-        Gamepads.gamepad1().dpadDown()
-                .whenBecomesTrue(Lifts.INSTANCE.toLow);
+        rightTrigger
+                .inLayer("Can Launch")
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
 
-        //Elevator
-        Gamepads.gamepad1().a()
-                .whenBecomesTrue(Elevator.INSTANCE.toHigh)
-                .whenBecomesFalse(Elevator.INSTANCE.toLow);
+        Gamepads.gamepad1().y()
+                .inLayer("Can Launch")
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
+
+        //Lifts TODO: When we install elevator
+//        Gamepads.gamepad1().dpadUp()
+//                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
+//
+//        Gamepads.gamepad1().dpadDown()
+//                .whenBecomesTrue(Lifts.INSTANCE.toLow);
 
         //Intake
-        Gamepads.gamepad1().b()
+        Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
+
+       leftTrigger
                 .inLayer("Can Intake")
                 .whenBecomesTrue(Intake.INSTANCE.takeIn)
                 .whenBecomesFalse(Intake.INSTANCE.stop);
-
-        //Launch
-        Gamepads.gamepad1().y()
-                .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
     }
 
 
@@ -148,7 +141,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
     public void onUpdate(){
         follower.update();
         telemetryM.update();
-        //TODO TEMPORARAY ROBOCENTRIC DRIVE CODE UNTIL PEDROPATHING CONSTANCTS ARE DONE TO USE PEDROPATHING TELEOP
+        //TODO TEMPORARAY ROBOCENTRIC DRIVE CODE UNTIL PEDROPATHING CONSTANTS ARE DONE TO USE PEDROPATHING TELEOP
         double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
         double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
         double rx = gamepad1.right_stick_x;
@@ -166,6 +159,8 @@ public class TeleopTheFirst extends NextFTCOpMode {
         backLeft.setPower(backLeftPower);
         frontRight.setPower(frontRightPower);
         backRight.setPower(backRightPower);
+
+        //END TODO
 
 //
 //        //If not following path allow driving
@@ -201,11 +196,12 @@ public class TeleopTheFirst extends NextFTCOpMode {
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
-        telemetryM.debug("Dpad up/down for lift");
-        telemetryM.debug("Dpad left/right for carousel");
-        telemetryM.debug("Left trigger for flywheels");
-        telemetryM.debug("A for elevator");
-        telemetryM.debug("B for intake");
-        telemetryM.debug("Y for launch");
+//        telemetryM.debug("Dpad up/down for lift");
+        telemetryM.debug("Bumper left/right for intake carousel");
+        telemetryM.debug("Dpad left/right for launcher carousel");
+        telemetryM.debug("Left trigger for intake");
+        telemetryM.debug("Right trigger for launch one");
+        telemetryM.debug("Y for launch all");
+        telemetryM.update(telemetry);
     }
 }

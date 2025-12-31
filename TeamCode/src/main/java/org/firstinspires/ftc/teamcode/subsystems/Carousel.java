@@ -39,8 +39,8 @@ public class Carousel implements Subsystem {
     @Override
     public void initialize() {
         currentState = CarouselState.LEFT;
-        controlSystem.setGoal(new KineticState(POSITION_LEFT));
         new InstantCommand(() -> motor.setPower(0.0)).schedule();
+        controlSystem.setGoal(new KineticState(POSITION_LEFT));
     }
 
     @Override
@@ -80,9 +80,7 @@ public class Carousel implements Subsystem {
             setGoalForCurrentState();
         }).requires(this);
     }
-    public boolean isLaunch(){
-        return (currentState == Carousel.CarouselState.RIGHT || currentState == Carousel.CarouselState.MIDDLE || currentState == Carousel.CarouselState.LEFT);
-    }
+
     public Command launchMoveToLeft() {
         return new InstantCommand(() -> {
             switch (currentState) {

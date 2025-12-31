@@ -27,4 +27,25 @@ public class LaunchGroup extends SubsystemGroup {
                     Elevator.INSTANCE.toLow
                     );
 
+    public Command launchAll = new SequentialGroup(
+            Flywheel.INSTANCE.on,
+            new Delay(1),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Elevator.INSTANCE.toLow,
+            new Delay(0.5),
+            Carousel.INSTANCE.launchMoveToRight(),
+            new Delay(0.5),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Elevator.INSTANCE.toLow,
+            new Delay(0.5),
+            Carousel.INSTANCE.launchMoveToRight(),
+            new Delay(0.5),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Flywheel.INSTANCE.off,
+            Elevator.INSTANCE.toLow
+    );
+
 }

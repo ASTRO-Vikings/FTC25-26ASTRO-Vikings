@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
@@ -14,8 +16,8 @@ public class Flywheel implements Subsystem {
     public final int vel = 1000;
     private Flywheel() { }
 
-    private final MotorEx rightMotor = new MotorEx("launcherLeft");
-    private final MotorEx leftMotor = new MotorEx("launcherRight");
+    private final MotorEx leftMotor = new MotorEx("launcherLeft");
+    private final MotorEx rightMotor = new MotorEx("launcherRight");
 
     private final ControlSystem rightController = ControlSystem.builder()
             .velPid(0.005, 0, 0)
@@ -33,8 +35,13 @@ public class Flywheel implements Subsystem {
 
     public final Command on = new InstantCommand(() -> {
         leftController.setGoal(new KineticState(0.0,vel));
-//        rightController.setGoal(new KineticState(0.0,vel));
+        rightController.setGoal(new KineticState(0.0,vel));
     }).requires(this);
+
+    @Override
+    public void initialize(){
+        leftMotor.setDirection(-1);
+    }
 
     @Override
     public void periodic() {

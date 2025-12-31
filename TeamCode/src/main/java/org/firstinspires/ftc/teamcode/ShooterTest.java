@@ -4,6 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Configurable
 @TeleOp(name = "ShooterTest")
@@ -30,6 +31,7 @@ public class ShooterTest extends OpMode {
             one.setPower(0);
             zero.setPower(0);
         }
+        one.setDirection(DcMotorSimple.Direction.REVERSE);
         telemetry.update();
     }
 }

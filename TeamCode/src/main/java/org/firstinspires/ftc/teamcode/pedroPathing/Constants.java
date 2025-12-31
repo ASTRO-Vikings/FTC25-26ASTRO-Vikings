@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -18,30 +19,33 @@ public class Constants {
             .maxPower(1)
             .rightFrontMotorName("frontRight")
             .rightRearMotorName("backRight")
-            .leftRearMotorName("frontLeft")
-            .leftFrontMotorName("frontRight")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .leftRearMotorName("backLeft")
+            .leftFrontMotorName("frontLeft")
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD )
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .xVelocity(56.4)
+            .yVelocity(43)
+            ;
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-5)
-            .strafePodX(0.5)
+            .forwardPodY(-5.5)
+            .strafePodX(-7.75)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("imu")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
-            //TODO .forwardPodY()
-            //TODO .strafePodX()
+
             ;
     public static FollowerConstants followerConstants = new FollowerConstants()
-            //TODO .mass()
+            .mass(13.15)
+            .forwardZeroPowerAcceleration(-39.4)
+            .lateralZeroPowerAcceleration(-69.79)
+            .headingPIDFCoefficients(new PIDFCoefficients(0.01, 0, 0.00001, 0.01))
     ;
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, .75, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
