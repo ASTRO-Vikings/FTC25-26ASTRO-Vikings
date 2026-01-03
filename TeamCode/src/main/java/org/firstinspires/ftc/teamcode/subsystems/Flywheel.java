@@ -34,13 +34,18 @@ public class Flywheel implements Subsystem {
     }).requires(this);
 
     public final Command on = new InstantCommand(() -> {
-        leftController.setGoal(new KineticState(0.0,vel));
-        rightController.setGoal(new KineticState(0.0,vel));
+        leftController.setGoal(new KineticState(0.0, vel));
+        rightController.setGoal(new KineticState(0.0, -vel));
+        Carousel.INSTANCE.removeBall();
     }).requires(this);
+
+    public String getFlywheelSpeeds(){
+        return String.format("Left motor: %f Goal: %f Right motor: %f Goal: %f",leftMotor.getVelocity(), leftController.getGoal().getVelocity(), rightMotor.getVelocity(), rightController.getGoal().getVelocity());
+    }
 
     @Override
     public void initialize(){
-        leftMotor.setDirection(-1);
+//        leftMotor.setDirection(-1);
     }
 
     @Override

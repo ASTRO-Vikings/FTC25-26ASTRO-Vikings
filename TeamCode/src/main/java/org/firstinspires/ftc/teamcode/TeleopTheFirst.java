@@ -7,8 +7,8 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
@@ -22,11 +22,8 @@ import java.util.function.Supplier;
 
 import dev.nextftc.bindings.BindingManager;
 import dev.nextftc.bindings.Button;
-import dev.nextftc.core.commands.Command;
-import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
-import dev.nextftc.core.commands.utility.NullCommand;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.Gamepads;
@@ -63,6 +60,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
     DcMotor frontRight;
     DcMotor backLeft;
     DcMotor backRight;
+    ColorSensor color;
 
     @Override
     public void onInit() {
@@ -71,6 +69,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
         frontRight = hardwareMap.dcMotor.get("frontRight");
         backLeft = hardwareMap.dcMotor.get("backLeft");
         backRight = hardwareMap.dcMotor.get("backRight");
+        color = hardwareMap.colorSensor.get("color");
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -87,37 +86,37 @@ public class TeleopTheFirst extends NextFTCOpMode {
     @Override
     public void onStartButtonPressed() {
         //Carousel
-        //Launch location rotation
+        //Intake location rotation
         Gamepads.gamepad1().dpadLeft().whenBecomesTrue(()->{new ParallelGroup(
-                Carousel.INSTANCE.launchMoveToLeft(),
-                new InstantCommand(()->{BindingManager.setLayer("Can Launch");}));});
+                Carousel.INSTANCE.intakeMoveToLeft(),
+                new InstantCommand(()->{BindingManager.setLayer("Can Intake");}));});
 
         Gamepads.gamepad1().dpadRight()
                 .whenBecomesTrue(new ParallelGroup(
-                        Carousel.INSTANCE.launchMoveToRight(),
-                        new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
+                        Carousel.INSTANCE.intakeMoveToRight(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
 
-        //Intake location rotation
+        //Launch location rotation
         Gamepads.gamepad1().leftBumper()
                 .whenBecomesTrue(new ParallelGroup (
-                        Carousel.INSTANCE.intakeMoveToLeft(),
-                        new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
+                        Carousel.INSTANCE.launchMoveToLeft(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
 
         Gamepads.gamepad1().rightBumper()
                 .whenBecomesTrue(new ParallelGroup(
-                        Carousel.INSTANCE.intakeMoveToRight(),
-                        new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
+                        Carousel.INSTANCE.launchMoveToRight(),
+                        new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
 
         //Launching
         Button rightTrigger = Gamepads.gamepad1().rightTrigger().greaterThan(.1);
 
         rightTrigger
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch());
 
         Gamepads.gamepad1().y()
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll());
 
         //Lifts TODO: When we install elevator
 //        Gamepads.gamepad1().dpadUp()
@@ -155,10 +154,10 @@ public class TeleopTheFirst extends NextFTCOpMode {
         double frontRightPower = (y - x - rx) / denominator;
         double backRightPower = (y + x - rx) / denominator;
 
-        frontLeft.setPower(frontLeftPower);
-        backLeft.setPower(backLeftPower);
-        frontRight.setPower(frontRightPower);
-        backRight.setPower(backRightPower);
+        frontLeft.setPower(0);
+        backLeft.setPower(0);
+        frontRight.setPower(0);
+        backRight.setPower(0);
 
         //END TODO
 
@@ -193,15 +192,23 @@ public class TeleopTheFirst extends NextFTCOpMode {
 //            slowMode = !slowMode;
 //        }
 
-        telemetryM.debug("position", follower.getPose());
-        telemetryM.debug("velocity", follower.getVelocity());
-        telemetryM.debug("automatedDrive", automatedDrive);
+//        telemetryM.debug("position", follower.getPose());
+//        telemetryM.debug("velocity", follower.getVelocity());
+//        telemetryM.debug("automatedDrive", automatedDrive);
 //        telemetryM.debug("Dpad up/down for lift");
-        telemetryM.debug("Bumper left/right for intake carousel");
-        telemetryM.debug("Dpad left/right for launcher carousel");
+        telemetryM.debug("Bumper left/right for launch carousel");
+        telemetryM.debug("Dpad left/right for intake carousel");
         telemetryM.debug("Left trigger for intake");
         telemetryM.debug("Right trigger for launch one");
         telemetryM.debug("Y for launch all");
+        telemetryM.debug(Flywheel.INSTANCE.getFlywheelSpeeds());
+        telemetryM.debug(Carousel.INSTANCE.getBallIndex());
+        telemetryM.debug(Carousel.INSTANCE.getBalls());
+        telemetryM.debug(Carousel.INSTANCE.getTelemetryStr());
+        telemetryM.debug("Red", color.red());
+        telemetryM.debug("Green", color.green());
+        telemetryM.debug("Blue", color.blue());
+        telemetryM.debug("Alpha", color.alpha());
         telemetryM.update(telemetry);
     }
 }
