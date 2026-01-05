@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
@@ -20,8 +21,7 @@ public class LaunchGroup extends SubsystemGroup {
         );
     }
 
-    public Command launchAll() {
-        return new SequentialGroup(
+    public Command launchAll = new SequentialGroup(
                 Flywheel.INSTANCE.on,
                 new Delay(1),
                 Elevator.INSTANCE.toHigh,
@@ -41,47 +41,41 @@ public class LaunchGroup extends SubsystemGroup {
                 Flywheel.INSTANCE.off,
                 Elevator.INSTANCE.toLow
         );
-    }
 
 
-    public Command launch() {//////doing nohing
-        Carousel.INSTANCE.teleStr = "Launching";
-        if (Carousel.INSTANCE.hasBall()) {
-            Carousel.INSTANCE.teleStr = "actulally launching";
-
-            return new SequentialGroup(
+    public Command launch = new IfElseCommand(
+            () -> Carousel.INSTANCE.hasBall(),//Condition
+            new SequentialGroup(//True Command
                     Flywheel.INSTANCE.on,
                     new Delay(1),
                     Elevator.INSTANCE.toHigh,
                     new Delay(0.5),
                     Flywheel.INSTANCE.off,
-                    Elevator.INSTANCE.toLow);
-        } else if (Carousel.INSTANCE.nextHasBall()) {
-            Carousel.INSTANCE.teleStr = "next actually has ball";
+                    Elevator.INSTANCE.toLow),
+            new IfElseCommand(//False Command
+                    () -> Carousel.INSTANCE.nextHasBall(),//Cond
+                    new SequentialGroup(//True
+                            Carousel.INSTANCE.launchMoveToRight(),
+                            new Delay(0.5),
+                            Flywheel.INSTANCE.on,
+                            new Delay(1),
+                            Elevator.INSTANCE.toHigh,
+                            new Delay(0.5),
+                            Flywheel.INSTANCE.off,
+                            Elevator.INSTANCE.toLow),
+                    new IfElseCommand(//False
+                            () -> Carousel.INSTANCE.lastHasBall(),//Cond
+                            new SequentialGroup(//True
+                                    Carousel.INSTANCE.launchMoveToLeft(),
+                                    new Delay(0.5),
+                                    Flywheel.INSTANCE.on,
+                                    new Delay(1),
+                                    Elevator.INSTANCE.toHigh,
+                                    new Delay(0.5),
+                                    Flywheel.INSTANCE.off,
+                                    Elevator.INSTANCE.toLow)
+                    )
+            )
+    );
 
-            return new SequentialGroup(
-                    Carousel.INSTANCE.launchMoveToRight(),
-                    new Delay(0.5),
-                    Flywheel.INSTANCE.on,
-                    new Delay(1),
-                    Elevator.INSTANCE.toHigh,
-                    new Delay(0.5),
-                    Flywheel.INSTANCE.off,
-                    Elevator.INSTANCE.toLow);
-        } else if (Carousel.INSTANCE.lastHasBall()) {
-            Carousel.INSTANCE.teleStr = "last actually has ball";
-
-            return new SequentialGroup(
-                    Carousel.INSTANCE.launchMoveToLeft(),
-                    new Delay(0.5),
-                    Flywheel.INSTANCE.on,
-                    new Delay(1),
-                    Elevator.INSTANCE.toHigh,
-                    new Delay(0.5),
-                    Flywheel.INSTANCE.off,
-                    Elevator.INSTANCE.toLow);
-        } else {
-            return new NullCommand();
-        }
-    }
 }

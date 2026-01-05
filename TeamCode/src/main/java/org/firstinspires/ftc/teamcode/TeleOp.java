@@ -6,7 +6,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -32,9 +31,9 @@ import dev.nextftc.ftc.components.BulkReadComponent;
 
 
 @Configurable
-@TeleOp(name = "Teleop")
-public class TeleopTheFirst extends NextFTCOpMode {
-    public TeleopTheFirst(){
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
+public class TeleOp extends NextFTCOpMode {
+    public TeleOp(){
         addComponents(
                 new SubsystemComponent(Carousel.INSTANCE),
                 new SubsystemComponent(Flywheel.INSTANCE),
@@ -112,18 +111,18 @@ public class TeleopTheFirst extends NextFTCOpMode {
 
         rightTrigger
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch());
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
 
         Gamepads.gamepad1().y()
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll());
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
 
-        //Lifts TODO: When we install elevator
-//        Gamepads.gamepad1().dpadUp()
-//                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
-//
-//        Gamepads.gamepad1().dpadDown()
-//                .whenBecomesTrue(Lifts.INSTANCE.toLow);
+        //Lifts
+        Gamepads.gamepad1().dpadUp()
+                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
+
+        Gamepads.gamepad1().dpadDown()
+                .whenBecomesTrue(Lifts.INSTANCE.toLow);
 
         //Intake
         Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
@@ -195,7 +194,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
 //        telemetryM.debug("position", follower.getPose());
 //        telemetryM.debug("velocity", follower.getVelocity());
 //        telemetryM.debug("automatedDrive", automatedDrive);
-//        telemetryM.debug("Dpad up/down for lift");
+        telemetryM.debug("Dpad up/down for lifts");
         telemetryM.debug("Bumper left/right for launch carousel");
         telemetryM.debug("Dpad left/right for intake carousel");
         telemetryM.debug("Left trigger for intake");
@@ -209,6 +208,7 @@ public class TeleopTheFirst extends NextFTCOpMode {
         telemetryM.debug("Green", color.green());
         telemetryM.debug("Blue", color.blue());
         telemetryM.debug("Alpha", color.alpha());
+        telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele());
         telemetryM.update(telemetry);
     }
 }

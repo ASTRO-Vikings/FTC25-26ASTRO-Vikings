@@ -52,15 +52,15 @@ public class Carousel implements Subsystem {
         ballStates[currentBallIndex] = BallState.NO_BALL;
     }
     public boolean hasBall(){
-        teleStr =("Has ball true");
+        teleStr =("Has ball check");
         return ballStates[currentBallIndex] == BallState.YES_BALL;
     }
     public boolean nextHasBall(){
-        teleStr = ("Has next ball true");
+        teleStr = ("Has next ball check");
         return ballStates[(currentBallIndex+1)%3] == BallState.YES_BALL;
     }
     public boolean lastHasBall(){
-        teleStr ="Has last ball true";
+        teleStr ="Has last ball check";
         return ballStates[(currentBallIndex+2)%3] == BallState.YES_BALL;
     }
     public String getTelemetryStr(){
