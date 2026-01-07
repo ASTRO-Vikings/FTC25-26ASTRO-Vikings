@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
@@ -111,18 +112,20 @@ public class TeleOp extends NextFTCOpMode {
 
         rightTrigger
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch.and(
+                        new InstantCommand(()->gamepad1.rumble(500))
+                ));
 
         Gamepads.gamepad1().y()
                 .inLayer("Can Launch")
                 .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
-
-        //Lifts
-        Gamepads.gamepad1().dpadUp()
-                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
-
-        Gamepads.gamepad1().dpadDown()
-                .whenBecomesTrue(Lifts.INSTANCE.toLow);
+//TODO re-add when lifts are finished
+//        //Lifts
+//        Gamepads.gamepad1().dpadUp()
+//                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
+//
+//        Gamepads.gamepad1().dpadDown()
+//                .whenBecomesTrue(Lifts.INSTANCE.toLow);
 
         //Intake
         Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
@@ -208,7 +211,9 @@ public class TeleOp extends NextFTCOpMode {
         telemetryM.debug("Green", color.green());
         telemetryM.debug("Blue", color.blue());
         telemetryM.debug("Alpha", color.alpha());
-        telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele());
+//        telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele()); TODO when re add lifts againkkjiu8
         telemetryM.update(telemetry);
     }
+
+
 }
