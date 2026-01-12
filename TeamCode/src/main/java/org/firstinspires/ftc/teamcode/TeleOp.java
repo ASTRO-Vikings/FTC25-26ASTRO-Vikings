@@ -112,9 +112,7 @@ public class TeleOp extends NextFTCOpMode {
 
         rightTrigger
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch.and(
-                        new InstantCommand(()->gamepad1.rumble(500))
-                ));
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
 
         Gamepads.gamepad1().y()
                 .inLayer("Can Launch")

@@ -13,17 +13,11 @@ import dev.nextftc.hardware.powerable.SetPower;
 @Configurable
 public class Lifts implements Subsystem {
     public static final Lifts INSTANCE = new Lifts();
-    public static final MotorEx motor = new MotorEx("elevator");
+    public static final MotorEx motor = new MotorEx("lifts");
     public static  double upPos = -.5;
     public static  double downPos = .5;
     private Lifts(){}
-    private final ServoEx elevator = new ServoEx("lift");
 
-//    public Command toLow = new SetPower(motor, downPos).requires(this);
-//    public Command toHigh = new SetPower(motor, upPos).requires(this);
-//    public String tele(){
-//        return "" + motor.getCurrentPosition();
-//    }
     //TODO once we get the pos's
 //    private final ControlSystem controlSystem = ControlSystem.builder()
 //            .posPid(0.005, 0, 0)
