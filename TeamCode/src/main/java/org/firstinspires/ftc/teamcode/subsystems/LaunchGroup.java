@@ -42,40 +42,50 @@ public class LaunchGroup extends SubsystemGroup {
                 Elevator.INSTANCE.toLow
         );
 
+    private Command launchCurrent =
+            new SequentialGroup(
+            Flywheel.INSTANCE.on,
+            new Delay(1),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Flywheel.INSTANCE.off,
+            Elevator.INSTANCE.toLow);
 
-    public Command launch = new IfElseCommand(
-            () -> Carousel.INSTANCE.hasBall(),//Condition
-            new SequentialGroup(//True Command
-                    Flywheel.INSTANCE.on,
-                    new Delay(1),
-                    Elevator.INSTANCE.toHigh,
-                    new Delay(0.5),
-                    Flywheel.INSTANCE.off,
-                    Elevator.INSTANCE.toLow),
+    private Command launchNext =
+            new SequentialGroup(
+            Carousel.INSTANCE.launchMoveToRight(),
+            new Delay(0.5),
+            Flywheel.INSTANCE.on,
+            new Delay(1),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Flywheel.INSTANCE.off,
+            Elevator.INSTANCE.toLow);
+
+    private Command launchLast =
+            new SequentialGroup(
+            Carousel.INSTANCE.launchMoveToLeft(),
+            new Delay(0.5),
+            Flywheel.INSTANCE.on,
+            new Delay(1),
+            Elevator.INSTANCE.toHigh,
+            new Delay(0.5),
+            Flywheel.INSTANCE.off,
+            Elevator.INSTANCE.toLow);
+
+
+    public Command launch() { 
+        return new IfElseCommand(
+                ()->Carousel.INSTANCE.hasBall(),//Condition
+            launchCurrent,//True Command,
             new IfElseCommand(//False Command
                     () -> Carousel.INSTANCE.nextHasBall(),//Cond
-                    new SequentialGroup(//True
-                            Carousel.INSTANCE.launchMoveToRight(),
-                            new Delay(0.5),
-                            Flywheel.INSTANCE.on,
-                            new Delay(1),
-                            Elevator.INSTANCE.toHigh,
-                            new Delay(0.5),
-                            Flywheel.INSTANCE.off,
-                            Elevator.INSTANCE.toLow),
+                    launchNext,//True
                     new IfElseCommand(//False
                             () -> Carousel.INSTANCE.lastHasBall(),//Cond
-                            new SequentialGroup(//True
-                                    Carousel.INSTANCE.launchMoveToLeft(),
-                                    new Delay(0.5),
-                                    Flywheel.INSTANCE.on,
-                                    new Delay(1),
-                                    Elevator.INSTANCE.toHigh,
-                                    new Delay(0.5),
-                                    Flywheel.INSTANCE.off,
-                                    Elevator.INSTANCE.toLow)
+                            launchLast//True
                     )
-            )
-    );
+        )
+    );}
 
 }
