@@ -69,9 +69,7 @@ public class Carousel implements Subsystem {
 
     @Override
     public void initialize() {
-
         currentState = CarouselState.LEFT;
-        new InstantCommand(() -> motor.setPower(0.0)).schedule();
         controlSystem.setGoal(new KineticState(POSITION_LEFT));
         ballStates[0] = BallState.NO_BALL;
         ballStates[1] = BallState.NO_BALL;

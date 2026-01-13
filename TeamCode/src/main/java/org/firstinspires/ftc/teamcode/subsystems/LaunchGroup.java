@@ -74,18 +74,16 @@ public class LaunchGroup extends SubsystemGroup {
             Elevator.INSTANCE.toLow);
 
 
-    public Command launch() { 
-        return new IfElseCommand(
-                ()->Carousel.INSTANCE.hasBall(),//Condition
+    public Command launch = new IfElseCommand(            Carousel.INSTANCE::hasBall,//Condition
             launchCurrent,//True Command,
             new IfElseCommand(//False Command
-                    () -> Carousel.INSTANCE.nextHasBall(),//Cond
+                    Carousel.INSTANCE::nextHasBall,//Cond
                     launchNext,//True
                     new IfElseCommand(//False
-                            () -> Carousel.INSTANCE.lastHasBall(),//Cond
+                            Carousel.INSTANCE::lastHasBall,//Cond
                             launchLast//True
                     )
-        )
-    );}
+            )
+        );
 
 }
