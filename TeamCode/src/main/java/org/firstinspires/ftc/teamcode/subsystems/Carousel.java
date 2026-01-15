@@ -13,12 +13,13 @@ public class Carousel implements Subsystem {
     public static final Carousel INSTANCE = new Carousel();
     private final double COUNTS_PER_360_DEGREES = 2786.2;
     private final double TICKS_PER_DEGREE = COUNTS_PER_360_DEGREES / 360.0;
-    public final int POSITION_LEFT = 0;
-    public final int POSITION_LEFT_MIDDLE = 60;
-    public final int POSITION_MIDDLE = 120;
-    public final int POSITION_RIGHT_MIDDLE = 180;
-    public final int POSITION_RIGHT = 240;
-    public final int POSITION_LEFT_RIGHT = 300;
+    final int offset = 60;
+    public final int POSITION_LEFT = 0 + offset;
+    public final int POSITION_LEFT_MIDDLE = 60 + offset;
+    public final int POSITION_MIDDLE = 120 + offset;
+    public final int POSITION_RIGHT_MIDDLE = 180 + offset;
+    public final int POSITION_RIGHT = 240 + offset;
+    public final int POSITION_LEFT_RIGHT = 300 + offset;
 
     private Carousel() {}
     private final MotorEx motor = new MotorEx("carousel");
@@ -93,28 +94,26 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.RIGHT;
-                    
                     break;
+                    
                 case LEFT_RIGHT:
                     currentState = CarouselState.RIGHT;
-                    
                     break;
+
                 case RIGHT:
                     currentState = CarouselState.MIDDLE;
-                    
                     break;
+
                 case RIGHT_MIDDLE:
                     currentState = CarouselState.MIDDLE;
-                    
-
                     break;
+
                 case MIDDLE:
                     currentState = CarouselState.LEFT;
-                    
                     break;
+
                 case LEFT_MIDDLE:
                     currentState = CarouselState.LEFT;
-                    
                     break;
             }
             setGoalForCurrentState();
@@ -126,26 +125,25 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.MIDDLE;
-                    
                     break;
+
                 case LEFT_RIGHT:
                     currentState = CarouselState.LEFT;
-                    
                     break;
+
                 case RIGHT:
                     currentState = CarouselState.LEFT;
-                    
                     break;
+
                 case RIGHT_MIDDLE:
                     currentState = CarouselState.RIGHT;
-                    
                     break;
+
                 case MIDDLE:
                     currentState = CarouselState.RIGHT;
-                    
                     break;
+
                 case LEFT_MIDDLE:
-                    
                     currentState = CarouselState.MIDDLE;
                     break;
             }

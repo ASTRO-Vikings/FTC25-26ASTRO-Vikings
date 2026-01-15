@@ -23,7 +23,7 @@ public class LaunchGroup extends SubsystemGroup {
 
     public Command launchAll = new SequentialGroup(
                 Flywheel.INSTANCE.on,
-                new Delay(1),
+                new Delay(1.25),
                 Elevator.INSTANCE.toHigh,
                 new Delay(0.5),
                 Elevator.INSTANCE.toLow,
@@ -42,48 +42,61 @@ public class LaunchGroup extends SubsystemGroup {
                 Elevator.INSTANCE.toLow
         );
 
-    private Command launchCurrent =
-            new SequentialGroup(
-            Flywheel.INSTANCE.on,
-            new Delay(1),
-            Elevator.INSTANCE.toHigh,
-            new Delay(0.5),
-            Flywheel.INSTANCE.off,
-            Elevator.INSTANCE.toLow);
-
-    private Command launchNext =
-            new SequentialGroup(
-            Carousel.INSTANCE.launchMoveToRight(),
-            new Delay(0.5),
-            Flywheel.INSTANCE.on,
-            new Delay(1),
-            Elevator.INSTANCE.toHigh,
-            new Delay(0.5),
-            Flywheel.INSTANCE.off,
-            Elevator.INSTANCE.toLow);
-
-    private Command launchLast =
-            new SequentialGroup(
-            Carousel.INSTANCE.launchMoveToLeft(),
-            new Delay(0.5),
-            Flywheel.INSTANCE.on,
-            new Delay(1),
-            Elevator.INSTANCE.toHigh,
-            new Delay(0.5),
-            Flywheel.INSTANCE.off,
-            Elevator.INSTANCE.toLow);
 
 
-    public Command launch = new IfElseCommand(            Carousel.INSTANCE::hasBall,//Condition
-            launchCurrent,//True Command,
-            new IfElseCommand(//False Command
-                    Carousel.INSTANCE::nextHasBall,//Cond
-                    launchNext,//True
-                    new IfElseCommand(//False
-                            Carousel.INSTANCE::lastHasBall,//Cond
-                            launchLast//True
-                    )
-            )
-        );
+public Command launch = new SequentialGroup(
+        Flywheel.INSTANCE.on,
+        new Delay(1.25),
+        Elevator.INSTANCE.toHigh,
+        new Delay(0.5),
+        Flywheel.INSTANCE.off,
+        new Delay(0.1),
+        Elevator.INSTANCE.toLow);
+
+//    public Command launch() {
+//        Command launchCurrent =
+//                new SequentialGroup(
+//                        Flywheel.INSTANCE.on,
+//                        new Delay(1),
+//                        Elevator.INSTANCE.toHigh,
+//                        new Delay(0.5),
+//                        Flywheel.INSTANCE.off,
+//                        Elevator.INSTANCE.toLow);
+//
+//        Command launchNext =
+//                new SequentialGroup(
+//                        Carousel.INSTANCE.launchMoveToRight(),
+//                        new Delay(0.5),
+//                        Flywheel.INSTANCE.on,
+//                        new Delay(1),
+//                        Elevator.INSTANCE.toHigh,
+//                        new Delay(0.5),
+//                        Flywheel.INSTANCE.off,
+//                        Elevator.INSTANCE.toLow);
+//
+//        Command launchLast =
+//                new SequentialGroup(
+//                        Carousel.INSTANCE.launchMoveToLeft(),
+//                        new Delay(0.5),
+//                        Flywheel.INSTANCE.on,
+//                        new Delay(1),
+//                        Elevator.INSTANCE.toHigh,
+//                        new Delay(0.5),
+//                        Flywheel.INSTANCE.off,
+//                        Elevator.INSTANCE.toLow);
+//
+//        return new IfElseCommand(
+//                Carousel.INSTANCE::hasBall,//Condition
+//                launchCurrent,//True Command
+//                new IfElseCommand(//False Command
+//                        Carousel.INSTANCE::nextHasBall,//Cond
+//                        launchNext,//True
+//                        new IfElseCommand(//False
+//                                Carousel.INSTANCE::lastHasBall,//Cond
+//                                launchLast//True
+//                        )
+//                )
+//        );
+//    }
 
 }

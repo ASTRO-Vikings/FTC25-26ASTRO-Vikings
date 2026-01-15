@@ -22,13 +22,20 @@ import java.util.function.Supplier;
 
 import dev.nextftc.bindings.BindingManager;
 import dev.nextftc.bindings.Button;
+import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
+import dev.nextftc.extensions.pedro.PedroDriverControlled;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
+import dev.nextftc.hardware.driving.FieldCentric;
+import dev.nextftc.hardware.driving.MecanumDriverControlled;
+import dev.nextftc.hardware.impl.Direction;
+import dev.nextftc.hardware.impl.IMUEx;
+import dev.nextftc.hardware.impl.MotorEx;
 
 
 @Configurable
@@ -56,19 +63,16 @@ public class TeleOp extends NextFTCOpMode {
     private double slowModeMultiplier = 0.5;
     private boolean isRobotCentric = false; //TODO decide whether field centric or robot centric
     //TODO TEMP DRIVE MOTORS
-    DcMotor frontLeft;
-    DcMotor frontRight;
-    DcMotor backLeft;
-    DcMotor backRight;
+    MotorEx frontLeft = new MotorEx("frontLeft");
+    MotorEx frontRight = new MotorEx("frontRight");
+    MotorEx backLeft = new MotorEx("backLeft");
+    MotorEx backRight = new MotorEx("backRight");
+    IMUEx imu = new IMUEx("imu", Direction.DOWN, Direction.FORWARD).zeroed();
+
     ColorSensor color;
 
     @Override
     public void onInit() {
-        //TODO TEMP DRIVE MOTORS
-        frontLeft = hardwareMap.dcMotor.get("frontLeft");
-        frontRight = hardwareMap.dcMotor.get("frontRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
         color = hardwareMap.colorSensor.get("color");
 
         follower = Constants.createFollower(hardwareMap);
@@ -87,9 +91,10 @@ public class TeleOp extends NextFTCOpMode {
     public void onStartButtonPressed() {
         //Carousel
         //Intake location rotation
-        Gamepads.gamepad1().dpadLeft().whenBecomesTrue(()->{new ParallelGroup(
-                Carousel.INSTANCE.intakeMoveToLeft(),
-                new InstantCommand(()->{BindingManager.setLayer("Can Intake");}));});
+        Gamepads.gamepad1().dpadLeft()
+                .whenBecomesTrue(new ParallelGroup(
+                    Carousel.INSTANCE.intakeMoveToLeft(),
+                    new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
 
         Gamepads.gamepad1().dpadRight()
                 .whenBecomesTrue(new ParallelGroup(
@@ -117,13 +122,13 @@ public class TeleOp extends NextFTCOpMode {
         Gamepads.gamepad1().y()
                 .inLayer("Can Launch")
                 .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
-//TODO re-add when lifts are finished
-//        //Lifts
-//        Gamepads.gamepad1().dpadUp()
-//                .whenBecomesTrue(Lifts.INSTANCE.toHigh);
-//
-//        Gamepads.gamepad1().dpadDown()
-//                .whenBecomesTrue(Lifts.INSTANCE.toLow);
+
+        //Lifts
+        Gamepads.gamepad1().dpadUp()
+                .whenBecomesTrue(Lifts.INSTANCE.up());
+
+        Gamepads.gamepad1().dpadDown()
+                .whenBecomesTrue(Lifts.INSTANCE.down());
 
         //Intake
         Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
@@ -132,7 +137,9 @@ public class TeleOp extends NextFTCOpMode {
                 .inLayer("Can Intake")
                 .whenBecomesTrue(Intake.INSTANCE.takeIn)
                 .whenBecomesFalse(Intake.INSTANCE.stop);
-    }
+       //Drive Code
+        follower.startTeleopDrive();
+        }
 
 
 
@@ -209,7 +216,7 @@ public class TeleOp extends NextFTCOpMode {
         telemetryM.debug("Green", color.green());
         telemetryM.debug("Blue", color.blue());
         telemetryM.debug("Alpha", color.alpha());
-//        telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele()); TODO when re add lifts againkkjiu8
+        telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele());
         telemetryM.update(telemetry);
     }
 

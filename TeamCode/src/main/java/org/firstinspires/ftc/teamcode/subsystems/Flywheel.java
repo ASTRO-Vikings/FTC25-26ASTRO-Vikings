@@ -17,8 +17,9 @@ public class Flywheel implements Subsystem {
     public final int vel = 1000;
     private Flywheel() { }
 
-    private final MotorEx leftMotor = new MotorEx("launcherLeft");
-    private final MotorEx rightMotor = new MotorEx("launcherRight");
+    private final MotorEx leftMotor = new MotorEx("launcherLeft").floatMode();
+    private final MotorEx rightMotor = new MotorEx("launcherRight").floatMode();
+
 
     private final ControlSystem rightController = ControlSystem.builder()
             .velPid(0.005, 0, 0)
@@ -30,11 +31,13 @@ public class Flywheel implements Subsystem {
             .build();
 
     public final Command off = new InstantCommand(() -> {
-        leftController.setGoal(new KineticState(0.0,0.0));
-        rightController.setGoal(new KineticState(0.0,0.0));
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
     }).requires(this);
 
     public final Command on = new InstantCommand(() -> {
+        leftMotor.setPower(1);
+        rightMotor.setPower(1);
         leftController.setGoal(new KineticState(0.0, vel));
         rightController.setGoal(new KineticState(0.0, -vel));
         Carousel.INSTANCE.removeBall();

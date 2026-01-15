@@ -16,7 +16,7 @@ android {
     buildFeatures {
         buildConfig = true
     }
-    compileSdk 28
+    compileSdk 34
 
 
     compileOptions {
