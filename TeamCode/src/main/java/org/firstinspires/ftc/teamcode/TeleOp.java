@@ -124,6 +124,7 @@ public class TeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
 
         //Lifts
+        Lifts.INSTANCE.motor.zero();
         Gamepads.gamepad1().dpadUp()
                 .whenBecomesTrue(Lifts.INSTANCE.up());
 
@@ -146,27 +147,10 @@ public class TeleOp extends NextFTCOpMode {
     @Override
     public void onUpdate(){
         follower.update();
+        follower.setTeleOpDrive(-gamepad1.left_stick_y,-gamepad1.left_stick_x,-gamepad1.right_stick_x);
         telemetryM.update();
-        //TODO TEMPORARAY ROBOCENTRIC DRIVE CODE UNTIL PEDROPATHING CONSTANTS ARE DONE TO USE PEDROPATHING TELEOP
-        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-        double rx = gamepad1.right_stick_x;
 
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
-        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        double frontLeftPower = (y + x + rx) / denominator;
-        double backLeftPower = (y - x + rx) / denominator;
-        double frontRightPower = (y - x - rx) / denominator;
-        double backRightPower = (y + x - rx) / denominator;
 
-        frontLeft.setPower(0);
-        backLeft.setPower(0);
-        frontRight.setPower(0);
-        backRight.setPower(0);
-
-        //END TODO
 
 //
 //        //If not following path allow driving
@@ -199,8 +183,8 @@ public class TeleOp extends NextFTCOpMode {
 //            slowMode = !slowMode;
 //        }
 
-//        telemetryM.debug("position", follower.getPose());
-//        telemetryM.debug("velocity", follower.getVelocity());
+        telemetryM.debug("position", follower.getPose());
+        telemetryM.debug("velocity", follower.getVelocity());
 //        telemetryM.debug("automatedDrive", automatedDrive);
         telemetryM.debug("Dpad up/down for lifts");
         telemetryM.debug("Bumper left/right for launch carousel");
