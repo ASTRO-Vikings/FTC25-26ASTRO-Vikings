@@ -6,10 +6,14 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorGoBildaPinpoint;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
 import org.firstinspires.ftc.teamcode.subsystems.Elevator;
@@ -53,7 +57,10 @@ public class TeleOp extends NextFTCOpMode {
                 BindingsComponent.INSTANCE
                 );
     }
-
+    Gamepad.RumbleEffect customRumbleEffect;
+    ElapsedTime runtime = new ElapsedTime();
+    boolean secondHalf = false;
+    final double HALF_TIME = 120.0;
     private TelemetryManager telemetryM;
     private Follower follower;
     public static Pose startingPose;
@@ -61,30 +68,37 @@ public class TeleOp extends NextFTCOpMode {
     private Supplier<PathChain> pathChain;
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
-    private boolean isRobotCentric = false; //TODO decide whether field centric or robot centric
+    private boolean isRobotCentric = true; //TODO decide whether field centric or robot centric
     //TODO TEMP DRIVE MOTORS
     MotorEx frontLeft = new MotorEx("frontLeft");
     MotorEx frontRight = new MotorEx("frontRight");
     MotorEx backLeft = new MotorEx("backLeft");
     MotorEx backRight = new MotorEx("backRight");
-    IMUEx imu = new IMUEx("imu", Direction.DOWN, Direction.FORWARD).zeroed();
+    GoBildaPinpointDriver imu;
 
     ColorSensor color;
 
     @Override
     public void onInit() {
+        imu = hardwareMap.get(GoBildaPinpointDriver.class,"imu");
+        imu.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         color = hardwareMap.colorSensor.get("color");
+        customRumbleEffect = new Gamepad.RumbleEffect.Builder()
+                .addStep(0.0, 1.0, 500)  //  Rumble right motor 100% for 500 mSec
+                .addStep(0.0, 0.0, 300)  //  Pause for 300 mSec
+                .addStep(1.0, 0.0, 250)  //  Rumble left motor 100% for 250 mSec
+                .addStep(0.0, 0.0, 250)  //  Pause for 250 mSec
+                .addStep(1.0, 0.0, 250)  //  Rumble left motor 100% for 250 mSec
+                .build();
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         follower.update();
+        Flywheel.INSTANCE.off().schedule();
+        Flywheel.INSTANCE.leftMotor.setPower(0);
+        Flywheel.INSTANCE.rightMotor.setPower(0);
 
-//      Path to follow during teleop
-//        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-//                .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
-//                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
-//                .build();
     }
 
     @Override
@@ -147,45 +161,43 @@ public class TeleOp extends NextFTCOpMode {
     @Override
     public void onUpdate(){
         follower.update();
-        follower.setTeleOpDrive(-gamepad1.left_stick_y,-gamepad1.left_stick_x,-gamepad1.right_stick_x);
         telemetryM.update();
+        if ((runtime.seconds() > HALF_TIME) && !secondHalf)  {
+            gamepad1.runRumbleEffect(customRumbleEffect);
+            secondHalf =true;
+        }
+
+        double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+        double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = gamepad1.right_stick_x;
+
+        double botHeading = imu.getHeading(AngleUnit.RADIANS);
+
+        // Rotate the movement direction counter to the bot's rotation
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+
+        rotX = rotX * 1.1;  // Counteract imperfect strafing
+
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio,
+        // but only if at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+
+        frontLeft.setPower(frontLeftPower);
+        backLeft.setPower(backLeftPower);
+        frontRight.setPower(frontRightPower);
+        backRight.setPower(backRightPower);
 
 
-
-//
-//        //If not following path allow driving
-//        if (!automatedDrive) {
-//            if (!slowMode) follower.setTeleOpDrive(
-//                    -gamepad1.left_stick_y,
-//                    -gamepad1.left_stick_x,
-//                    -gamepad1.right_stick_x,
-//                    isRobotCentric
-//            );
-//            else follower.setTeleOpDrive(
-//                    -gamepad1.left_stick_y * slowModeMultiplier,
-//                    -gamepad1.left_stick_x * slowModeMultiplier,
-//                    -gamepad1.right_stick_x * slowModeMultiplier,
-//                    isRobotCentric
-//            );
-//        }
-////        Follow path
-////        if (gamepad1.aWasPressed()) {
-////            follower.followPath(pathChain.get());
-////            automatedDrive = true;
-////        }
-////        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
-////            follower.startTeleopDrive();
-////            automatedDrive = false;
-////        }
-//
-//        //Toggle slowmode
-//        if (gamepad1.leftTriggerWasPressed()) {
-//            slowMode = !slowMode;
-//        }
 
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
-//        telemetryM.debug("automatedDrive", automatedDrive);
+        telemetryM.debug("slowmode", slowMode);
         telemetryM.debug("Dpad up/down for lifts");
         telemetryM.debug("Bumper left/right for launch carousel");
         telemetryM.debug("Dpad left/right for intake carousel");

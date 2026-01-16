@@ -23,22 +23,22 @@ public class LaunchGroup extends SubsystemGroup {
 
     public Command launchAll = new SequentialGroup(
                 Flywheel.INSTANCE.on,
-                new Delay(1.25),
+                new Delay(2),
                 Elevator.INSTANCE.toHigh,
                 new Delay(0.5),
                 Elevator.INSTANCE.toLow,
                 new Delay(0.5),
                 Carousel.INSTANCE.launchMoveToRight(),
-                new Delay(0.5),
+                new Delay(1),
                 Elevator.INSTANCE.toHigh,
                 new Delay(0.5),
                 Elevator.INSTANCE.toLow,
                 new Delay(0.5),
                 Carousel.INSTANCE.launchMoveToRight(),
-                new Delay(0.5),
+                new Delay(1),
                 Elevator.INSTANCE.toHigh,
                 new Delay(0.5),
-                Flywheel.INSTANCE.off,
+                Flywheel.INSTANCE.off(),
                 Elevator.INSTANCE.toLow
         );
 
@@ -46,10 +46,10 @@ public class LaunchGroup extends SubsystemGroup {
 
 public Command launch = new SequentialGroup(
         Flywheel.INSTANCE.on,
-        new Delay(1.25),
+        new Delay(2),
         Elevator.INSTANCE.toHigh,
         new Delay(0.5),
-        Flywheel.INSTANCE.off,
+        Flywheel.INSTANCE.off(),
         new Delay(0.1),
         Elevator.INSTANCE.toLow);
 
