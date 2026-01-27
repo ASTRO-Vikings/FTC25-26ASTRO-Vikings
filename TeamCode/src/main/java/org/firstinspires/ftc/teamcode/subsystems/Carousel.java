@@ -13,7 +13,7 @@ public class Carousel implements Subsystem {
     public static final Carousel INSTANCE = new Carousel();
     private final double COUNTS_PER_360_DEGREES = 2786.2;
     private final double TICKS_PER_DEGREE = COUNTS_PER_360_DEGREES / 360.0;
-    final int offset = 60;
+    int offset = 0;
     public final int POSITION_LEFT = 0 + offset;
     public final int POSITION_LEFT_MIDDLE = 60 + offset;
     public final int POSITION_MIDDLE = 120 + offset;
@@ -22,7 +22,8 @@ public class Carousel implements Subsystem {
     public final int POSITION_LEFT_RIGHT = 300 + offset;
 
     private Carousel() {}
-    private final MotorEx motor = new MotorEx("carousel");
+    public final MotorEx motor = new MotorEx("carousel").zeroed();
+
     private final ControlSystem controlSystem = ControlSystem.builder()
             .angular(AngleType.DEGREES,
                     feedback -> feedback.posPid(0.04, 0, 0.001))
@@ -32,6 +33,15 @@ public class Carousel implements Subsystem {
     // Enum to keep track of the current logical state
     public enum CarouselState {
         LEFT, LEFT_MIDDLE, MIDDLE, RIGHT_MIDDLE, RIGHT, LEFT_RIGHT
+    }
+    public void reset(){
+        motor.zeroed();
+        currentState = CarouselState.LEFT;
+//        setGoalForCurrentState();
+        ballStates[0] = BallState.NO_BALL;
+        ballStates[1] = BallState.NO_BALL;
+        ballStates[2] = BallState.NO_BALL;
+
     }
     public enum BallState {
         YES_BALL, NO_BALL
@@ -70,6 +80,7 @@ public class Carousel implements Subsystem {
 
     @Override
     public void initialize() {
+        motor.zeroed();
         currentState = CarouselState.LEFT;
         controlSystem.setGoal(new KineticState(POSITION_LEFT));
         ballStates[0] = BallState.NO_BALL;
@@ -95,7 +106,7 @@ public class Carousel implements Subsystem {
                 case LEFT:
                     currentState = CarouselState.RIGHT;
                     break;
-                    
+
                 case LEFT_RIGHT:
                     currentState = CarouselState.RIGHT;
                     break;
@@ -119,6 +130,8 @@ public class Carousel implements Subsystem {
             setGoalForCurrentState();
         }).requires(this);
     }
+
+
 
     public Command intakeMoveToLeft() {
         return new InstantCommand(() -> {

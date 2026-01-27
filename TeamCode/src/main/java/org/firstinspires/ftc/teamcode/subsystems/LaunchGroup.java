@@ -46,9 +46,9 @@ public class LaunchGroup extends SubsystemGroup {
 
 public Command launch = new SequentialGroup(
         Flywheel.INSTANCE.on,
-        new Delay(2),
+        new Delay(.25),
         Elevator.INSTANCE.toHigh,
-        new Delay(0.5),
+        new Delay(1),
         Flywheel.INSTANCE.off(),
         new Delay(0.1),
         Elevator.INSTANCE.toLow);

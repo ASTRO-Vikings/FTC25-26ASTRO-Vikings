@@ -7,14 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.subsystems.Elevator;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel;
-
-import dev.nextftc.core.commands.delays.Delay;
-import dev.nextftc.hardware.impl.MotorEx;
-
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous", preselectTeleOp = "TeleOp")
-public class Autonomous extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "No Shoot Auto", preselectTeleOp = "TeleOp")
+public class NoShootAuto extends LinearOpMode {
     private TelemetryManager telemetryM;
 
     DcMotor frontLeft;
@@ -59,68 +53,65 @@ public class Autonomous extends LinearOpMode {
             telemetryM.update(telemetry);
         }
         waitForStart();
+//
+//        carousel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        carousel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        carousel.setTargetPosition(POSITION_LEFT_MIDDLE);
+//        carousel.setPower(1);
+//
+//        leftLaunch.setPower(.65);
+//        rightLaunch.setDirection(DcMotorSimple.Direction.REVERSE);
+//        rightLaunch.setPower(.65);
+//
+//        Thread.sleep(250);
+//
+//        elevator.setPosition(0);
+//
+//        Thread.sleep(1000);
 
-        carousel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        carousel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        carousel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        carousel.setTargetPosition(POSITION_LEFT_MIDDLE);
-        carousel.setPower(1);
+//        elevator.setPosition(1);
+//
+//        Thread.sleep(400);
+//
+//        carousel.setTargetPosition(POSITION_LEFT_RIGHT);
+//
+//        Thread.sleep(500);
+//
+//        elevator.setPosition(0);
+//
+//        Thread.sleep(1000);
+//
+//        elevator.setPosition(1);
+//
+//        Thread.sleep(400);
+//
+//        carousel.setTargetPosition(POSITION_RIGHT_MIDDLE);
+//
+//        Thread.sleep(500);
+//
+//        elevator.setPosition(0);
+//
+//        Thread.sleep(1000);
+//
+//        elevator.setPosition(1);
 
-        leftLaunch.setPower(.7);
-        rightLaunch.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightLaunch.setPower(.7);
-
-        Thread.sleep(1750);
-
-        elevator.setPosition(0);
-
-        Thread.sleep(1000);
-
-        elevator.setPosition(1);
-
-        Thread.sleep(400);
-
-        carousel.setTargetPosition(POSITION_LEFT_RIGHT);
-
-        Thread.sleep(500);
-
-        elevator.setPosition(0);
-
-        Thread.sleep(1000);
-
-        elevator.setPosition(1);
-
-        Thread.sleep(400);
-
-        carousel.setTargetPosition(POSITION_RIGHT_MIDDLE);
-
-        Thread.sleep(500);
-
-        elevator.setPosition(0);
-
-        Thread.sleep(1000);
-
-        elevator.setPosition(1);
-
-        Thread.sleep(400);
-
-        carousel.setTargetPosition(0);
+//        Thread.sleep(400);
+//
+//        carousel.setTargetPosition(0);
 
         frontLeft .setPower(goLeft ? -1 :  1);
         backLeft  .setPower(goLeft ?  1 : -1);
         frontRight.setPower(goLeft ?  1 : -1);
         backRight .setPower(goLeft ? -1 :  1);
 
-        Thread.sleep(400);
-
+        Thread.sleep(500);
         frontLeft.setPower(0);
         backLeft.setPower(0);
         frontRight.setPower(0);
         backRight.setPower(0);
         leftLaunch.setPower(0);
         rightLaunch.setPower(0);
-
-        Thread.sleep(3000);
         carousel.setPower(0);
     }
 }

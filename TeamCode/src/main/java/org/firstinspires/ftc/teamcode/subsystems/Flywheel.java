@@ -16,7 +16,7 @@ import dev.nextftc.hardware.powerable.SetPower;
 
 public class Flywheel implements Subsystem {
     public static final Flywheel INSTANCE = new Flywheel();
-    public final int vel = 1000;
+    public final int vel = 1050;
 
     private Flywheel() {
     }
