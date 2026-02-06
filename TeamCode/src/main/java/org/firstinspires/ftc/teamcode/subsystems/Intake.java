@@ -13,9 +13,12 @@ public class Intake implements Subsystem{
     private final CRServoEx intake = new CRServoEx("intake");
 
 
-    public Command takeIn =
-            new SetPower(intake, -1).and(
-            new InstantCommand(()->Carousel.INSTANCE.addBall())
-    );
-    public Command stop = new SetPower(intake, 0);
+    public Command takeIn() {
+        return new SetPower(intake, -1);
+    }
+    public Command takeOut() {
+        return new SetPower(intake, 1);
+    }
+    public Command stop() {return new SetPower(intake, 0).and(
+            new InstantCommand(() -> Carousel.INSTANCE.addBall()));}
 }

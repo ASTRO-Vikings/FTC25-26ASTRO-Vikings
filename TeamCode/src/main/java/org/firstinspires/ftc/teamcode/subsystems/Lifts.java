@@ -3,19 +3,15 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 
 import dev.nextftc.control.ControlSystem;
-import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
-import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.hardware.controllable.RunToPosition;
 import dev.nextftc.hardware.impl.MotorEx;
-import dev.nextftc.hardware.impl.ServoEx;
-import dev.nextftc.hardware.powerable.SetPower;
 
 @Configurable
 public class Lifts implements Subsystem {
     public static final Lifts INSTANCE = new Lifts();
-    public static final MotorEx motor = new MotorEx("lifts");
+    public static final MotorEx motor = new MotorEx("lifts").zeroed();
     public static int goal = 30000;
     private Lifts(){}
 

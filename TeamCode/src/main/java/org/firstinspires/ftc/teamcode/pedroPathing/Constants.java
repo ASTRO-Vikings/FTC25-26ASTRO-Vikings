@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Constants {
     //TODO https://pedropathing.com/docs/pathing/tuning/automatic
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(0)//TODO set to 1
+            .maxPower(1)
             .rightFrontMotorName("frontRight")
             .rightRearMotorName("backRight")
             .leftRearMotorName("backLeft")

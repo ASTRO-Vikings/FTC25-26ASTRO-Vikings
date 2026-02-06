@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.delays.Delay;
@@ -12,6 +10,10 @@ import dev.nextftc.core.subsystems.SubsystemGroup;
 
 public class LaunchGroup extends SubsystemGroup {
     public static final LaunchGroup INSTANCE = new LaunchGroup();
+    double delayAfterRotate = 0.5;
+    double delayBeforeLaunch = 1;
+    double delayBeforeDown = 0.5;
+
 
     private LaunchGroup() {
         super(
@@ -21,82 +23,104 @@ public class LaunchGroup extends SubsystemGroup {
         );
     }
 
-    public Command launchAll = new SequentialGroup(
-                Flywheel.INSTANCE.on,
-                new Delay(1.25),
-                Elevator.INSTANCE.toHigh,
-                new Delay(0.5),
-                Elevator.INSTANCE.toLow,
-                new Delay(0.5),
+    public Command launchAll(boolean shortLaunch) {
+        return new SequentialGroup(
+                Flywheel.INSTANCE.on(shortLaunch),
+                new Delay(1.75),
+                Elevator.INSTANCE.toHigh(),
+                new Delay(1),
+                Elevator.INSTANCE.toLow(),
+                new Delay(0.4),
                 Carousel.INSTANCE.launchMoveToRight(),
                 new Delay(0.5),
-                Elevator.INSTANCE.toHigh,
-                new Delay(0.5),
-                Elevator.INSTANCE.toLow,
-                new Delay(0.5),
+                Elevator.INSTANCE.toHigh(),
+                new Delay(1),
+                Elevator.INSTANCE.toLow(),
+                new Delay(0.4),
                 Carousel.INSTANCE.launchMoveToRight(),
+                new Delay(1),
+                Elevator.INSTANCE.toHigh(),
                 new Delay(0.5),
-                Elevator.INSTANCE.toHigh,
-                new Delay(0.5),
-                Flywheel.INSTANCE.off,
-                Elevator.INSTANCE.toLow
-        );
+                Flywheel.INSTANCE.off(),
+                Elevator.INSTANCE.toLow()
+        ).requires(this);
+    }
 
+    private Command launchCurrent(boolean shortLaunch) {
+        return new SequentialGroup(
+                Carousel.INSTANCE.launchMoveToRight(),
+                Carousel.INSTANCE.launchMoveToLeft(),
+                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                Flywheel.INSTANCE.on(shortLaunch),
+                new Delay(delayBeforeLaunch),
+                Elevator.INSTANCE.toHigh(),
+                new Delay(delayBeforeDown),
+                Flywheel.INSTANCE.off(),
+                Elevator.INSTANCE.toLow());
+    }
 
+    private Command launchNext(boolean shortLaunch) {
+        return new SequentialGroup(
+                Carousel.INSTANCE.launchMoveToRight(),
+                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                new Delay(delayAfterRotate),
+                Flywheel.INSTANCE.on(shortLaunch),
+                new Delay(delayBeforeLaunch),
+                Elevator.INSTANCE.toHigh(),
+                new Delay(delayBeforeDown),
+                Flywheel.INSTANCE.off(),
+                Elevator.INSTANCE.toLow());
+    }
 
-public Command launch = new SequentialGroup(
-        Flywheel.INSTANCE.on,
-        new Delay(1.25),
-        Elevator.INSTANCE.toHigh,
-        new Delay(0.5),
-        Flywheel.INSTANCE.off,
-        new Delay(0.1),
-        Elevator.INSTANCE.toLow);
+    private Command launchLast(boolean shortLaunch) {
+        return new SequentialGroup(
+                Carousel.INSTANCE.launchMoveToLeft(),
+                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                new Delay(delayAfterRotate),
+                Flywheel.INSTANCE.on(shortLaunch),
+                new Delay(delayBeforeLaunch),
+                Elevator.INSTANCE.toHigh(),
+                new Delay(delayBeforeDown),
+                Flywheel.INSTANCE.off(),
+                Elevator.INSTANCE.toLow());
+    }
 
-//    public Command launch() {
-//        Command launchCurrent =
-//                new SequentialGroup(
-//                        Flywheel.INSTANCE.on,
-//                        new Delay(1),
-//                        Elevator.INSTANCE.toHigh,
-//                        new Delay(0.5),
-//                        Flywheel.INSTANCE.off,
-//                        Elevator.INSTANCE.toLow);
-//
-//        Command launchNext =
-//                new SequentialGroup(
-//                        Carousel.INSTANCE.launchMoveToRight(),
-//                        new Delay(0.5),
-//                        Flywheel.INSTANCE.on,
-//                        new Delay(1),
-//                        Elevator.INSTANCE.toHigh,
-//                        new Delay(0.5),
-//                        Flywheel.INSTANCE.off,
-//                        Elevator.INSTANCE.toLow);
-//
-//        Command launchLast =
-//                new SequentialGroup(
-//                        Carousel.INSTANCE.launchMoveToLeft(),
-//                        new Delay(0.5),
-//                        Flywheel.INSTANCE.on,
-//                        new Delay(1),
-//                        Elevator.INSTANCE.toHigh,
-//                        new Delay(0.5),
-//                        Flywheel.INSTANCE.off,
-//                        Elevator.INSTANCE.toLow);
-//
-//        return new IfElseCommand(
-//                Carousel.INSTANCE::hasBall,//Condition
-//                launchCurrent,//True Command
-//                new IfElseCommand(//False Command
-//                        Carousel.INSTANCE::nextHasBall,//Cond
-//                        launchNext,//True
-//                        new IfElseCommand(//False
-//                                Carousel.INSTANCE::lastHasBall,//Cond
-//                                launchLast//True
-//                        )
-//                )
-//        );
-//    }
+    public Command launch(boolean shortLaunch) {
+            if (Carousel.INSTANCE.hasBall(Carousel.BallState.GREEN_BALL, true)) {
+                return launchCurrent(shortLaunch);
+            }
+            if (Carousel.INSTANCE.nextHasBall(Carousel.BallState.GREEN_BALL, true)) {
+                return launchNext(shortLaunch);
+            }
+            if (Carousel.INSTANCE.lastHasBall(Carousel.BallState.GREEN_BALL, true)) {
+                return launchLast(shortLaunch);
+            }
+            return new NullCommand();
+    }
 
+    public Command launchGreen(boolean shortLaunch){
+        if (Carousel.INSTANCE.hasBall(Carousel.BallState.GREEN_BALL, false)) {
+            return launchCurrent(shortLaunch);
+        }
+        if (Carousel.INSTANCE.nextHasBall(Carousel.BallState.GREEN_BALL, false)) {
+            return launchNext(shortLaunch);
+        }
+        if (Carousel.INSTANCE.lastHasBall(Carousel.BallState.GREEN_BALL, false)) {
+            return launchLast(shortLaunch);
+        }
+        return new NullCommand();
+    }
+
+    public Command launchPurple(boolean shortLaunch){
+        if (Carousel.INSTANCE.hasBall(Carousel.BallState.PURPLE_BALL, false)) {
+            return launchCurrent(shortLaunch);
+        }
+        if (Carousel.INSTANCE.nextHasBall(Carousel.BallState.PURPLE_BALL, false)) {
+            return launchNext(shortLaunch);
+        }
+        if (Carousel.INSTANCE.lastHasBall(Carousel.BallState.PURPLE_BALL, false)) {
+            return launchLast(shortLaunch);
+        }
+        return new NullCommand();
+    }
 }

@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.gamepad.PanelsGamepad;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Carousel;
@@ -22,15 +21,20 @@ import java.util.function.Supplier;
 
 import dev.nextftc.bindings.BindingManager;
 import dev.nextftc.bindings.Button;
-import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
+import dev.nextftc.core.units.Angle;
+import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.extensions.pedro.PedroDriverControlled;
+import dev.nextftc.extensions.pedro.TurnBy;
+import dev.nextftc.extensions.pedro.TurnTo;
+import dev.nextftc.ftc.GamepadEx;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
+import dev.nextftc.hardware.driving.DriverControlledCommand;
 import dev.nextftc.hardware.driving.FieldCentric;
 import dev.nextftc.hardware.driving.MecanumDriverControlled;
 import dev.nextftc.hardware.impl.Direction;
@@ -50,141 +54,195 @@ public class TeleOp extends NextFTCOpMode {
                 new SubsystemComponent(Elevator.INSTANCE),
                 new SubsystemComponent(LaunchGroup.INSTANCE),
                 BulkReadComponent.INSTANCE,
-                BindingsComponent.INSTANCE
+                BindingsComponent.INSTANCE,
+                new PedroComponent(Constants::createFollower)
                 );
     }
 
     private TelemetryManager telemetryM;
-    private Follower follower;
+//    private Follower follower = PedroComponent.follower();
     public static Pose startingPose;
-    private boolean automatedDrive;
+    boolean isTurningToTag = false;
+
+    private boolean automatedDrive = false;
     private Supplier<PathChain> pathChain;
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
-    private boolean isRobotCentric = false; //TODO decide whether field centric or robot centric
-    //TODO TEMP DRIVE MOTORS
+    private Limelight3A limelight;
+    private boolean isRobotCentric = false;
+    boolean turnToTag = false;
     MotorEx frontLeft = new MotorEx("frontLeft");
     MotorEx frontRight = new MotorEx("frontRight");
     MotorEx backLeft = new MotorEx("backLeft");
     MotorEx backRight = new MotorEx("backRight");
     IMUEx imu = new IMUEx("imu", Direction.DOWN, Direction.FORWARD).zeroed();
 
-    ColorSensor color;
+    boolean shortLaunch = false;
+    public static boolean shooting = false;
+    RevBlinkinLedDriver blinkin;
+    GamepadEx driverGamepad = Gamepads.gamepad1();
+    DriverControlledCommand driverControlled = new PedroDriverControlled(
+            driverGamepad.leftStickY().negate(),
+            driverGamepad.leftStickX().negate(),
+            driverGamepad.rightStickX().negate(),
+            isRobotCentric
+    );
 
     @Override
     public void onInit() {
-        color = hardwareMap.colorSensor.get("color");
-
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        if (startingPose == null){
+            startingPose = new Pose(0,0,90);
+        }
+        PedroComponent.follower().setPose(startingPose);
+        Carousel.INSTANCE.evilInit(hardwareMap);
+        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        follower.update();
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+    }
 
-//      Path to follow during teleop
-//        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-//                .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
-//                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
-//                .build();
+    @Override
+    public void onWaitForStart(){
+        Gamepads.gamepad1().a().whenBecomesTrue(new InstantCommand(()->{isRobotCentric = !isRobotCentric;}));
+        telemetry.addData("Robot centric: ", isRobotCentric);
     }
 
     @Override
     public void onStartButtonPressed() {
+        GamepadEx carouselGamepad = Gamepads.gamepad2();
+        
         //Carousel
         //Intake location rotation
-        Gamepads.gamepad1().dpadLeft()
+        carouselGamepad.dpadLeft()
                 .whenBecomesTrue(new ParallelGroup(
                     Carousel.INSTANCE.intakeMoveToLeft(),
                     new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
 
-        Gamepads.gamepad1().dpadRight()
+        carouselGamepad.dpadRight()
                 .whenBecomesTrue(new ParallelGroup(
                         Carousel.INSTANCE.intakeMoveToRight(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Intake");})));
 
+        carouselGamepad.a()
+                        .whenBecomesTrue(new InstantCommand(()->{
+                            turnToTag = ! turnToTag;
+                        }));
+
         //Launch location rotation
-        Gamepads.gamepad1().leftBumper()
+        carouselGamepad.leftBumper()
                 .whenBecomesTrue(new ParallelGroup (
                         Carousel.INSTANCE.launchMoveToLeft(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
 
-        Gamepads.gamepad1().rightBumper()
+        carouselGamepad.rightBumper()
                 .whenBecomesTrue(new ParallelGroup(
                         Carousel.INSTANCE.launchMoveToRight(),
                         new InstantCommand(()->{BindingManager.setLayer("Can Launch");})));
 
         //Launching
-        Button rightTrigger = Gamepads.gamepad1().rightTrigger().greaterThan(.1);
+        Button rightTrigger = carouselGamepad.rightTrigger().greaterThan(.1);
 
         rightTrigger
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launch);
-
-        Gamepads.gamepad1().y()
+                .whenBecomesTrue(
+                        new InstantCommand(() ->
+                        {
+                            LaunchGroup.INSTANCE.launch(shortLaunch).schedule();
+                            shooting = true;
+                        }
+                        )
+                );
+        carouselGamepad.x()
+                        .inLayer("Can Launch")
+                        .whenBecomesTrue(
+                                new InstantCommand(()->
+                                {
+                                    LaunchGroup.INSTANCE.launchPurple(shortLaunch).schedule();
+                                    shooting = true;
+                                }
+                                )
+                        );
+        carouselGamepad.b()
                 .inLayer("Can Launch")
-                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll);
+                .whenBecomesTrue(
+                        new InstantCommand(()->
+                        {
+                            shooting = true;
+                            LaunchGroup.INSTANCE.launchGreen(shortLaunch).schedule();
+                        }
+                        )
+                );
+
+        carouselGamepad.y()
+                .inLayer("Can Launch")
+                .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll(shortLaunch));
 
         //Lifts
         Lifts.INSTANCE.motor.zero();
-        Gamepads.gamepad1().dpadUp()
+        carouselGamepad.dpadUp()
                 .whenBecomesTrue(Lifts.INSTANCE.up());
 
-        Gamepads.gamepad1().dpadDown()
+        carouselGamepad.dpadDown()
                 .whenBecomesTrue(Lifts.INSTANCE.down());
 
         //Intake
-        Button leftTrigger = Gamepads.gamepad1().leftTrigger().greaterThan(.1);
+        Button leftTrigger = carouselGamepad.leftTrigger().greaterThan(.1);
 
        leftTrigger
                 .inLayer("Can Intake")
-                .whenBecomesTrue(Intake.INSTANCE.takeIn)
-                .whenBecomesFalse(Intake.INSTANCE.stop);
-       //Drive Code
-        follower.startTeleopDrive();
-        }
+                .whenBecomesTrue(Intake.INSTANCE.takeIn())
+                .whenBecomesFalse(Intake.INSTANCE.stop());
+
+        driverControlled.schedule();
+        limelight.start();
+        limelight.pipelineSwitch(0);
+        limelight.setPollRateHz(60);
+
+        Carousel.INSTANCE.scanBalls().schedule();
+    }
+
+        
 
 
 
     @Override
-    public void onUpdate(){
-        follower.update();
-        follower.setTeleOpDrive(-gamepad1.left_stick_y,-gamepad1.left_stick_x,-gamepad1.right_stick_x);
-        telemetryM.update();
+    public void onUpdate() {
+        if(PedroComponent.follower().getPose().getX() >= 60){
+            shortLaunch = false;
+        } else{
+            shortLaunch = true;
+        }
+        if(shortLaunch){
+            blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
+        } else{
+            blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE);
+        }
+        shortLaunch = !shortLaunch;
 
-
-
+//        double tagPos;
+//        if(limelight.getLatestResult().isValid()){
+//            tagPos = limelight.getLatestResult().getFiducialResults().get(0).getTargetXDegrees();
+//            telemetryM.debug("tsg pos x", tagPos);
 //
-//        //If not following path allow driving
-//        if (!automatedDrive) {
-//            if (!slowMode) follower.setTeleOpDrive(
-//                    -gamepad1.left_stick_y,
-//                    -gamepad1.left_stick_x,
-//                    -gamepad1.right_stick_x,
-//                    isRobotCentric
-//            );
-//            else follower.setTeleOpDrive(
-//                    -gamepad1.left_stick_y * slowModeMultiplier,
-//                    -gamepad1.left_stick_x * slowModeMultiplier,
-//                    -gamepad1.right_stick_x * slowModeMultiplier,
-//                    isRobotCentric
-//            );
+//        } else{
+//            tagPos = 0;
 //        }
-////        Follow path
-////        if (gamepad1.aWasPressed()) {
-////            follower.followPath(pathChain.get());
-////            automatedDrive = true;
-////        }
-////        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
-////            follower.startTeleopDrive();
-////            automatedDrive = false;
-////        }
+//        if (turnToTag && !isTurningToTag) {
+//            isTurningToTag = true;
 //
-//        //Toggle slowmode
-//        if (gamepad1.leftTriggerWasPressed()) {
-//            slowMode = !slowMode;
+//            driverControlled.cancel();
+//
+//            new TurnBy(Angle.fromDeg(tagPos))
+//                    .then(new InstantCommand(() -> {
+//                        isTurningToTag = false;
+//                        driverControlled.schedule();
+//                    }))
+//                    .schedule();
 //        }
 
-        telemetryM.debug("position", follower.getPose());
-        telemetryM.debug("velocity", follower.getVelocity());
+
+        telemetryM.debug("position", PedroComponent.follower().getPose());
+        telemetryM.debug("velocity", PedroComponent.follower().getVelocity());
 //        telemetryM.debug("automatedDrive", automatedDrive);
         telemetryM.debug("Dpad up/down for lifts");
         telemetryM.debug("Bumper left/right for launch carousel");
@@ -192,17 +250,18 @@ public class TeleOp extends NextFTCOpMode {
         telemetryM.debug("Left trigger for intake");
         telemetryM.debug("Right trigger for launch one");
         telemetryM.debug("Y for launch all");
-        telemetryM.debug(Flywheel.INSTANCE.getFlywheelSpeeds());
+        telemetryM.debug("X for Purple B for Green");
+        telemetryM.debug("A for toggle short launch which is currently ", shortLaunch);
         telemetryM.debug(Carousel.INSTANCE.getBallIndex());
         telemetryM.debug(Carousel.INSTANCE.getBalls());
-        telemetryM.debug(Carousel.INSTANCE.getTelemetryStr());
-        telemetryM.debug("Red", color.red());
-        telemetryM.debug("Green", color.green());
-        telemetryM.debug("Blue", color.blue());
-        telemetryM.debug("Alpha", color.alpha());
         telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele());
+        telemetryM.debug("Turning to tag:", turnToTag);
         telemetryM.update(telemetry);
+        }
+
+        @Override
+        public void onStop() {
+            TeleOp.startingPose = PedroComponent.follower().getPose();
+        }
     }
 
-
-}
