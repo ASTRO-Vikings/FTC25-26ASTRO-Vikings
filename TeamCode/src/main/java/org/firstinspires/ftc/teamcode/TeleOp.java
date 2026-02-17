@@ -180,10 +180,12 @@ public class TeleOp extends NextFTCOpMode {
         //Lifts
         Lifts.INSTANCE.motor.zero();
         carouselGamepad.dpadUp()
-                .whenBecomesTrue(Lifts.INSTANCE.up());
+                .whenBecomesTrue(Lifts.INSTANCE.up())
+                        .whenBecomesFalse(Lifts.INSTANCE.off());
 
         carouselGamepad.dpadDown()
-                .whenBecomesTrue(Lifts.INSTANCE.down());
+                .whenBecomesTrue(Lifts.INSTANCE.down())
+                .whenBecomesFalse(Lifts.INSTANCE.off());
 
         //Intake
         Button leftTrigger = carouselGamepad.leftTrigger().greaterThan(.1);
