@@ -5,6 +5,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.hardware.controllable.RunToPosition;
 import dev.nextftc.hardware.impl.MotorEx;
@@ -29,20 +30,23 @@ public class Lifts implements Subsystem {
             .build();
 
     public final Command down() {
-        return new RunToPosition(controller, 0).requires(this);
+        return new InstantCommand(()->{motor.setPower(-1);});
     }
 
     public final Command up() {
-        return new RunToPosition(controller, goal).requires(this);
+        return new InstantCommand(()->{motor.setPower(1);});
+    }
+    public final Command off(){
+        return new InstantCommand(()->{motor.setPower(0);});
     }
 
     public String tele(){
         return controller.getGoal().toString() + motor.getPower();
     }
-    @Override
-    public void periodic() {
-        motor.setPower(controller.calculate(motor.getState()));
-    }
+//    @Override
+//    public void periodic() {
+//        motor.setPower(controller.calculate(motor.getState()));
+//    }
 
 
 }
