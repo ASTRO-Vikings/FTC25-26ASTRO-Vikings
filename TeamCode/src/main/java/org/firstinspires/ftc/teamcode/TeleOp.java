@@ -25,21 +25,15 @@ import dev.nextftc.core.commands.groups.ParallelGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.components.BindingsComponent;
 import dev.nextftc.core.components.SubsystemComponent;
-import dev.nextftc.core.units.Angle;
 import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.extensions.pedro.PedroDriverControlled;
-import dev.nextftc.extensions.pedro.TurnBy;
-import dev.nextftc.extensions.pedro.TurnTo;
 import dev.nextftc.ftc.GamepadEx;
 import dev.nextftc.ftc.Gamepads;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 import dev.nextftc.hardware.driving.DriverControlledCommand;
-import dev.nextftc.hardware.driving.FieldCentric;
-import dev.nextftc.hardware.driving.MecanumDriverControlled;
 import dev.nextftc.hardware.impl.Direction;
 import dev.nextftc.hardware.impl.IMUEx;
-import dev.nextftc.hardware.impl.MotorEx;
 
 
 @Configurable
@@ -71,10 +65,6 @@ public class TeleOp extends NextFTCOpMode {
     private Limelight3A limelight;
     private boolean isRobotCentric = false;
     boolean turnToTag = false;
-    MotorEx frontLeft = new MotorEx("frontLeft");
-    MotorEx frontRight = new MotorEx("frontRight");
-    MotorEx backLeft = new MotorEx("backLeft");
-    MotorEx backRight = new MotorEx("backRight");
     IMUEx imu = new IMUEx("imu", Direction.DOWN, Direction.FORWARD).zeroed();
 
     boolean shortLaunch = false;
@@ -91,7 +81,7 @@ public class TeleOp extends NextFTCOpMode {
     @Override
     public void onInit() {
         if (startingPose == null){
-            startingPose = new Pose(0,0,90);
+            startingPose = new Pose(0,0,270);
         }
         PedroComponent.follower().setPose(startingPose);
         Carousel.INSTANCE.evilInit(hardwareMap);
@@ -178,7 +168,7 @@ public class TeleOp extends NextFTCOpMode {
                 .whenBecomesTrue(LaunchGroup.INSTANCE.launchAll(shortLaunch));
 
         //Lifts
-        Lifts.INSTANCE.motor.zero();
+        Lifts.INSTANCE.initialize();
         carouselGamepad.dpadUp()
                 .whenBecomesTrue(Lifts.INSTANCE.up());
 
@@ -192,6 +182,10 @@ public class TeleOp extends NextFTCOpMode {
                 .inLayer("Can Intake")
                 .whenBecomesTrue(Intake.INSTANCE.takeIn())
                 .whenBecomesFalse(Intake.INSTANCE.stop());
+
+       driverGamepad
+               .a()
+               .whenBecomesTrue(new InstantCommand(()->PedroComponent.follower().setPose(new Pose(0,0,Math.toRadians(-90)))));
 
         driverControlled.schedule();
         limelight.start();
@@ -207,17 +201,11 @@ public class TeleOp extends NextFTCOpMode {
 
     @Override
     public void onUpdate() {
-        if(PedroComponent.follower().getPose().getX() >= 60){
-            shortLaunch = false;
-        } else{
-            shortLaunch = true;
-        }
-        if(shortLaunch){
+        if(!Carousel.INSTANCE.allHaveBalls()){
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
         } else{
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE);
         }
-        shortLaunch = !shortLaunch;
 
 //        double tagPos;
 //        if(limelight.getLatestResult().isValid()){
@@ -243,7 +231,7 @@ public class TeleOp extends NextFTCOpMode {
 
         telemetryM.debug("position", PedroComponent.follower().getPose());
         telemetryM.debug("velocity", PedroComponent.follower().getVelocity());
-//        telemetryM.debug("automatedDrive", automatedDrive);
+//      telemetryM.debug("automatedDrive", automatedDrive);
         telemetryM.debug("Dpad up/down for lifts");
         telemetryM.debug("Bumper left/right for launch carousel");
         telemetryM.debug("Dpad left/right for intake carousel");

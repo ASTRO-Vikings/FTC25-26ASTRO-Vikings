@@ -20,5 +20,5 @@ public class Intake implements Subsystem{
         return new SetPower(intake, 1);
     }
     public Command stop() {return new SetPower(intake, 0).and(
-            new InstantCommand(() -> Carousel.INSTANCE.addBall()));}
+            new InstantCommand(Carousel.INSTANCE::addBall));}
 }

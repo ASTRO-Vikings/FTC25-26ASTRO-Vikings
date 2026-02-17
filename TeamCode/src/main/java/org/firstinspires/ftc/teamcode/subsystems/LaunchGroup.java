@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import dev.nextftc.core.commands.Command;
-import dev.nextftc.core.commands.conditionals.IfElseCommand;
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
 import dev.nextftc.core.commands.utility.InstantCommand;
@@ -48,9 +47,9 @@ public class LaunchGroup extends SubsystemGroup {
 
     private Command launchCurrent(boolean shortLaunch) {
         return new SequentialGroup(
-                Carousel.INSTANCE.launchMoveToRight(),
-                Carousel.INSTANCE.launchMoveToLeft(),
-                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                Carousel.INSTANCE.launchMoveToRight(true),
+                Carousel.INSTANCE.launchMoveToLeft(true),
+                new InstantCommand(Carousel.INSTANCE::removeBall),
                 Flywheel.INSTANCE.on(shortLaunch),
                 new Delay(delayBeforeLaunch),
                 Elevator.INSTANCE.toHigh(),
@@ -61,8 +60,8 @@ public class LaunchGroup extends SubsystemGroup {
 
     private Command launchNext(boolean shortLaunch) {
         return new SequentialGroup(
-                Carousel.INSTANCE.launchMoveToRight(),
-                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                Carousel.INSTANCE.launchMoveToRight(true),
+                new InstantCommand(Carousel.INSTANCE::removeBall),
                 new Delay(delayAfterRotate),
                 Flywheel.INSTANCE.on(shortLaunch),
                 new Delay(delayBeforeLaunch),
@@ -74,8 +73,8 @@ public class LaunchGroup extends SubsystemGroup {
 
     private Command launchLast(boolean shortLaunch) {
         return new SequentialGroup(
-                Carousel.INSTANCE.launchMoveToLeft(),
-                new InstantCommand(()->Carousel.INSTANCE.removeBall()),
+                Carousel.INSTANCE.launchMoveToLeft(true),
+                new InstantCommand(Carousel.INSTANCE::removeBall),
                 new Delay(delayAfterRotate),
                 Flywheel.INSTANCE.on(shortLaunch),
                 new Delay(delayBeforeLaunch),

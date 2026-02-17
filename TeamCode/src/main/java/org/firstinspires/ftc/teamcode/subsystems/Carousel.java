@@ -5,11 +5,6 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-
-import java.util.Hashtable;
-
-import javax.net.ssl.SSLEngineResult;
-
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
 import dev.nextftc.control.feedback.AngleType;
@@ -22,10 +17,8 @@ import dev.nextftc.hardware.impl.MotorEx;
 
 public class Carousel implements Subsystem {
     public static final Carousel INSTANCE = new Carousel();
-    private final double COUNTS_PER_360_DEGREES = 2786.2;
-    private final double TICKS_PER_DEGREE = COUNTS_PER_360_DEGREES / 360.0;
     final int offset = 60;
-    public final int POSITION_LEFT = 0 + offset;
+    public final int POSITION_LEFT = offset;
     public final int POSITION_LEFT_MIDDLE = 60 + offset;
     public final int POSITION_MIDDLE = 120 + offset;
     public final int POSITION_RIGHT_MIDDLE = 180 + offset;
@@ -70,6 +63,16 @@ public class Carousel implements Subsystem {
     private NormalizedColorSensor colorSensor;
     Limelight3A limelight;
 
+    public boolean allHaveBalls(){
+        boolean allHaveBall = true;
+        for(BallState ball : ballStates){
+            if (ball == BallState.NO_BALL){
+                allHaveBall = false;
+            }
+        }
+        return allHaveBall;
+    }
+
     public void addBall(){
         NormalizedRGBA colors = colorSensor.getNormalizedColors();
         double red = colors.red;
@@ -91,19 +94,19 @@ public class Carousel implements Subsystem {
     }
     public Command scanBalls(){
         return new SequentialGroup(
-                new InstantCommand(()->{addBall();}),
-                new Delay(0.5),
-                intakeMoveToLeft(),
-                new Delay(0.5),
-                new InstantCommand(()->{addBall();}),
-                new Delay(0.5),
-                intakeMoveToLeft(),
-                new Delay(0.5),
-                new InstantCommand(()->{addBall();}),
-                new Delay(0.5),
-                intakeMoveToLeft(),
-                new Delay(0.5),
-                new InstantCommand(()->{addBall();})
+                new InstantCommand(this::addBall),
+                new Delay(0.7),
+                intakeMoveToLeft(true),
+                new Delay(0.7),
+                new InstantCommand(this::addBall),
+                new Delay(0.7),
+                intakeMoveToLeft(true),
+                new Delay(0.7),
+                new InstantCommand(this::addBall),
+                new Delay(0.7),
+                intakeMoveToLeft(true),
+                new Delay(0.7),
+                new InstantCommand(this::addBall)
         );
     }
 
@@ -161,6 +164,8 @@ public class Carousel implements Subsystem {
         }
 
         KineticState motorState = motor.getState();
+        double COUNTS_PER_360_DEGREES = 2786.2;
+        double TICKS_PER_DEGREE = COUNTS_PER_360_DEGREES / 360.0;
         double currentAngleDegrees = (motorState.getPosition() / TICKS_PER_DEGREE) % 360.0;
         if (currentAngleDegrees < 0) {
             currentAngleDegrees += 360.0;
@@ -175,14 +180,16 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.RIGHT;
+                    addBall();
                     break;
-                    
+
                 case LEFT_RIGHT:
                     currentState = CarouselState.RIGHT;
                     break;
 
                 case RIGHT:
                     currentState = CarouselState.MIDDLE;
+                    addBall();
                     break;
 
                 case RIGHT_MIDDLE:
@@ -191,6 +198,7 @@ public class Carousel implements Subsystem {
 
                 case MIDDLE:
                     currentState = CarouselState.LEFT;
+                    addBall();
                     break;
 
                 case LEFT_MIDDLE:
@@ -206,10 +214,16 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.MIDDLE;
+                    addBall();
+                    break;
+
+                case LEFT_MIDDLE:
+                    currentState = CarouselState.MIDDLE;
                     break;
 
                 case LEFT_RIGHT:
                     currentState = CarouselState.LEFT;
+                    addBall();
                     break;
 
                 case RIGHT:
@@ -218,14 +232,11 @@ public class Carousel implements Subsystem {
 
                 case RIGHT_MIDDLE:
                     currentState = CarouselState.RIGHT;
+                    addBall();
                     break;
 
                 case MIDDLE:
                     currentState = CarouselState.RIGHT;
-                    break;
-
-                case LEFT_MIDDLE:
-                    currentState = CarouselState.MIDDLE;
                     break;
             }
             setGoalForCurrentState();
@@ -236,28 +247,32 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.LEFT_MIDDLE;
-                    
+                    addBall();
                     break;
+
                 case LEFT_RIGHT:
-                    
+
                     currentState = CarouselState.LEFT_MIDDLE;
+                    
                     break;
                 case RIGHT:
-                    
                     currentState = CarouselState.LEFT_RIGHT;
+                    addBall();
                     break;
+
                 case RIGHT_MIDDLE:
-                    
+
                     currentState = CarouselState.LEFT_RIGHT;
                     break;
                 case MIDDLE:
                     currentState = CarouselState.RIGHT_MIDDLE;
-                    
+                    addBall();
                     break;
                 case LEFT_MIDDLE:
                     currentState = CarouselState.RIGHT_MIDDLE;
                     
                     break;
+
             }
             setGoalForCurrentState();
         }).requires(this);
@@ -267,22 +282,148 @@ public class Carousel implements Subsystem {
             switch (currentState) {
                 case LEFT:
                     currentState = CarouselState.LEFT_MIDDLE;
+                    addBall();
+                    break;
+
+                case RIGHT_MIDDLE:
+                    currentState = CarouselState.LEFT_MIDDLE;
                     break;
                 case LEFT_RIGHT:
                     currentState = CarouselState.RIGHT_MIDDLE;
+                    addBall();
+                    break;
+
+                case MIDDLE:
+                    currentState = CarouselState.RIGHT_MIDDLE;
                     break;
                 case RIGHT:
-                    
+                    currentState = CarouselState.LEFT_RIGHT;
+                    addBall();
+                    break;
+                case LEFT_MIDDLE:
+
                     currentState = CarouselState.LEFT_RIGHT;
                     break;
+            }
+            setGoalForCurrentState();
+        }).requires(this);
+    }
+
+    public Command intakeMoveToRight(boolean inAuto) {
+        return new InstantCommand(() -> {
+            switch (currentState) {
+                case LEFT:
+                    currentState = CarouselState.RIGHT;
+                    break;
+
+                case LEFT_RIGHT:
+                    currentState = CarouselState.RIGHT;
+                    break;
+
+                case RIGHT:
+                    currentState = CarouselState.MIDDLE;
+                    break;
+
                 case RIGHT_MIDDLE:
+                    currentState = CarouselState.MIDDLE;
+                    break;
+
+                case MIDDLE:
+                    currentState = CarouselState.LEFT;
+                    break;
+
+                case LEFT_MIDDLE:
+                    currentState = CarouselState.LEFT;
+                    break;
+            }
+            setGoalForCurrentState();
+        }).requires(this);
+    }
+
+    public Command intakeMoveToLeft(boolean inAuto) {
+        return new InstantCommand(() -> {
+            switch (currentState) {
+                case LEFT:
+                    currentState = CarouselState.MIDDLE;
+                    break;
+
+                case LEFT_MIDDLE:
+                    currentState = CarouselState.MIDDLE;
+                    break;
+
+                case LEFT_RIGHT:
+                    currentState = CarouselState.LEFT;
+                    break;
+
+                case RIGHT:
+                    currentState = CarouselState.LEFT;
+                    break;
+
+                case RIGHT_MIDDLE:
+                    currentState = CarouselState.RIGHT;
+                    break;
+
+                case MIDDLE:
+                    currentState = CarouselState.RIGHT;
+                    break;
+            }
+            setGoalForCurrentState();
+        }).requires(this);
+    }
+    public Command launchMoveToLeft(boolean inAuto) {
+        return new InstantCommand(() -> {
+            switch (currentState) {
+                case LEFT:
                     currentState = CarouselState.LEFT_MIDDLE;
+                    break;
+
+                case LEFT_RIGHT:
+
+                    currentState = CarouselState.LEFT_MIDDLE;
+
+                    break;
+                case RIGHT:
+                    currentState = CarouselState.LEFT_RIGHT;
+                    break;
+
+                case RIGHT_MIDDLE:
+
+                    currentState = CarouselState.LEFT_RIGHT;
                     break;
                 case MIDDLE:
                     currentState = CarouselState.RIGHT_MIDDLE;
                     break;
                 case LEFT_MIDDLE:
-                    
+                    currentState = CarouselState.RIGHT_MIDDLE;
+
+                    break;
+
+            }
+            setGoalForCurrentState();
+        }).requires(this);
+    }
+    public Command launchMoveToRight(boolean inAuto) {
+        return new InstantCommand(() -> {
+            switch (currentState) {
+                case LEFT:
+                    currentState = CarouselState.LEFT_MIDDLE;
+                    break;
+
+                case RIGHT_MIDDLE:
+                    currentState = CarouselState.LEFT_MIDDLE;
+                    break;
+                case LEFT_RIGHT:
+                    currentState = CarouselState.RIGHT_MIDDLE;
+                    break;
+
+                case MIDDLE:
+                    currentState = CarouselState.RIGHT_MIDDLE;
+                    break;
+                case RIGHT:
+                    currentState = CarouselState.LEFT_RIGHT;
+                    break;
+                case LEFT_MIDDLE:
+
                     currentState = CarouselState.LEFT_RIGHT;
                     break;
             }
@@ -293,10 +434,6 @@ public class Carousel implements Subsystem {
     private void setGoalForCurrentState() {
         int targetPos;
         switch (currentState) {
-            case LEFT:
-                targetPos = POSITION_LEFT;
-                currentBallIndex = 0;
-                break;
             case LEFT_RIGHT:
                 targetPos = POSITION_LEFT_RIGHT;
                 currentBallIndex = 2;

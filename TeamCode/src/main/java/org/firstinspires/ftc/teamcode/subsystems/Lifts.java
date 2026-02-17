@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 
 import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.hardware.controllable.RunToPosition;
@@ -17,9 +18,10 @@ public class Lifts implements Subsystem {
 
     //TODO once we get the pos's
     @Override
-    public void initialize(){
-        motor.zero();
+    public void initialize() {
+        motor.setCurrentPosition(0);
         motor.zeroed();
+        motor.zero();
     }
     private final ControlSystem controller = ControlSystem.builder()
             .posPid(0.005, 0, 0)
