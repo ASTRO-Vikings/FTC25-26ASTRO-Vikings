@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 
-import org.firstinspires.ftc.teamcode.TeleOp;
+import org.firstinspires.ftc.teamcode.TeleOpRed;
 
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.control.KineticState;
@@ -35,7 +35,7 @@ public class Flywheel implements Subsystem {
     public final Command off() {
         return new InstantCommand(() -> {
             multiplier = 0;
-            TeleOp.shooting = false;
+            TeleOpRed.shooting = false;
         }).requires(this);
     }
     public final Command on(boolean shortLaunch){

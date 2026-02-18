@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.gamepad.PanelsGamepad;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
@@ -37,9 +36,9 @@ import dev.nextftc.hardware.impl.IMUEx;
 
 
 @Configurable
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp")
-public class TeleOp extends NextFTCOpMode {
-    public TeleOp(){
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOp Blue")
+public class TeleOpBlue extends NextFTCOpMode {
+    public TeleOpBlue(){
         addComponents(
                 new SubsystemComponent(Carousel.INSTANCE),
                 new SubsystemComponent(Flywheel.INSTANCE),
@@ -81,7 +80,7 @@ public class TeleOp extends NextFTCOpMode {
     @Override
     public void onInit() {
         if (startingPose == null){
-            startingPose = new Pose(0,0,270);
+            startingPose = new Pose(0,0,Math.toRadians(90));
         }
         PedroComponent.follower().setPose(startingPose);
         Carousel.INSTANCE.evilInit(hardwareMap);
@@ -94,7 +93,8 @@ public class TeleOp extends NextFTCOpMode {
     @Override
     public void onWaitForStart(){
         Gamepads.gamepad1().a().whenBecomesTrue(new InstantCommand(()->{isRobotCentric = !isRobotCentric;}));
-        telemetry.addData("Robot centric: ", isRobotCentric);
+        telemetryM.addData("Robot centric: ", isRobotCentric);
+        telemetryM.update();
     }
 
     @Override
@@ -197,16 +197,17 @@ public class TeleOp extends NextFTCOpMode {
         Carousel.INSTANCE.scanBalls().schedule();
     }
 
-        
-
-
-
     @Override
     public void onUpdate() {
         if(!Carousel.INSTANCE.allHaveBalls()){
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
         } else{
             blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_OCEAN_PALETTE);
+        }
+        if(Math.abs(PedroComponent.follower().getPose().getY()) >= 48){
+            shortLaunch = true;
+        } else{
+            shortLaunch = false;
         }
 
 //        double tagPos;
@@ -241,7 +242,7 @@ public class TeleOp extends NextFTCOpMode {
         telemetryM.debug("Right trigger for launch one");
         telemetryM.debug("Y for launch all");
         telemetryM.debug("X for Purple B for Green");
-        telemetryM.debug("A for toggle short launch which is currently ", shortLaunch);
+        telemetryM.debug("Short launch is currently ", shortLaunch);
         telemetryM.debug(Carousel.INSTANCE.getBallIndex());
         telemetryM.debug(Carousel.INSTANCE.getBalls());
         telemetryM.debug("Elevator pos:", Lifts.INSTANCE.tele());
@@ -251,7 +252,8 @@ public class TeleOp extends NextFTCOpMode {
 
         @Override
         public void onStop() {
-            TeleOp.startingPose = PedroComponent.follower().getPose();
+            TeleOpBlue.startingPose = new Pose(0,0,Math.toRadians(90));
+
         }
     }
 

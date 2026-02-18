@@ -42,7 +42,7 @@ public class LaunchGroup extends SubsystemGroup {
                 new Delay(0.5),
                 Flywheel.INSTANCE.off(),
                 Elevator.INSTANCE.toLow()
-        ).requires(this);
+        );
     }
 
     private Command launchCurrent(boolean shortLaunch) {

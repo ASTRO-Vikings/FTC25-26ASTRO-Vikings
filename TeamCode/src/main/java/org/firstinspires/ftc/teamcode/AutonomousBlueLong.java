@@ -23,7 +23,7 @@ import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Blue")
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Blue Long")
 public class AutonomousBlueLong extends NextFTCOpMode {
     public AutonomousBlueLong(){
         addComponents(
@@ -161,6 +161,6 @@ public class AutonomousBlueLong extends NextFTCOpMode {
 
     @Override
     public void onStop() {
-        TeleOp.startingPose = PedroComponent.follower().getPose();
+        TeleOpRed.startingPose = PedroComponent.follower().getPose();
     }
 }

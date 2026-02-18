@@ -24,7 +24,7 @@ import dev.nextftc.extensions.pedro.PedroComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 import dev.nextftc.ftc.components.BulkReadComponent;
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Red")
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Red Long")
 public class AutonomousRedLong extends NextFTCOpMode {
     public AutonomousRedLong(){
         addComponents(
@@ -36,7 +36,7 @@ public class AutonomousRedLong extends NextFTCOpMode {
     }
     Pose startPose = new Pose(96.000, 8.000,Math.toRadians(90));
 
-    Pose shootPose = new Pose(86.000, 18.000,Math.toRadians(40));
+    Pose shootPose = new Pose(85.000, 18.000,Math.toRadians(55));
     Pose endPose = new Pose(96,28);
 
     PathChain pathchainStartToShoot;
@@ -159,6 +159,6 @@ public class AutonomousRedLong extends NextFTCOpMode {
 
     @Override
     public void onStop() {
-        TeleOp.startingPose = PedroComponent.follower().getPose();
+        TeleOpRed.startingPose = PedroComponent.follower().getPose();
     }
 }

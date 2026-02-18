@@ -14,7 +14,7 @@ import dev.nextftc.hardware.impl.MotorEx;
 public class Lifts implements Subsystem {
     public static final Lifts INSTANCE = new Lifts();
     public static final MotorEx motor = new MotorEx("lifts").zeroed();
-    public static int goal = 30000;
+    public static int maxHeight = -31775-260;
     private Lifts(){}
 
     //TODO once we get the pos's
@@ -24,24 +24,23 @@ public class Lifts implements Subsystem {
         motor.zeroed();
         motor.zero();
     }
-    private final ControlSystem controller = ControlSystem.builder()
-            .posPid(0.005, 0, 0)
-            .elevatorFF(0.04)
-            .build();
 
     public final Command down() {
-        return new InstantCommand(()->{motor.setPower(-1);});
+        return new InstantCommand(()->{motor.setPower(1);});
     }
 
     public final Command up() {
-        return new InstantCommand(()->{motor.setPower(1);});
+        return new InstantCommand(()->{
+            if(motor.getCurrentPosition() < maxHeight){
+                motor.setPower(-1);
+            }});
     }
     public final Command off(){
         return new InstantCommand(()->{motor.setPower(0);});
     }
 
     public String tele(){
-        return controller.getGoal().toString() + motor.getPower();
+        return "Lifts at " + motor.getCurrentPosition();
     }
 //    @Override
 //    public void periodic() {
